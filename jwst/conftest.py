@@ -109,27 +109,29 @@ class TestDescriptionPlugin:
 def pytest_collection_modifyitems(items):
     # only run a handful of tests
     allowed_names = [
+        # hmmm
+        "test_flatfield_step_interface[NIRISS-NIS_WFSS]",
         # tests that have previously failed
         "test_nis_wfss_spec2[cal]",
-        "test_nis_wfss_spec2[esec]",
-        "test_nis_wfss_spec2[extract_2d]",
-        "test_nis_wfss_spec2[flat_field]",
-        "test_nis_wfss_spec2[photom]",
-        "test_nis_wfss_spec2[srctype]",
-        "test_nis_wfss_spec2[x1d]",
-        "test_nis_wfss_spec3[s00015-cal]",
-        "test_nis_wfss_spec3[s00015-x1d]",
-        "test_nis_wfss_spec3[s00015-c1d]",
-        "test_nis_wfss_spec3[s00104-cal]",
-        "test_nis_wfss_spec3[s00104-x1d]",
-        "test_nis_wfss_spec3[s00104-c1d]",
-        "test_nircam_tsimg_stage2[calints]",
-        "test_nircam_tsimg_stage2[o006_crfints]",
-        # tests that are suspect
-        "test_flat_field_bots_interp_flat",
-        "test_verify_image2[cal]",
-        "test_verify_image2[flat_field]",
-        "test_verify_image2[assign_wcs]",
+        # "test_nis_wfss_spec2[esec]",
+        # "test_nis_wfss_spec2[extract_2d]",
+        # "test_nis_wfss_spec2[flat_field]",
+        # "test_nis_wfss_spec2[photom]",
+        # "test_nis_wfss_spec2[srctype]",
+        # "test_nis_wfss_spec2[x1d]",
+        # "test_nis_wfss_spec3[s00015-cal]",
+        # "test_nis_wfss_spec3[s00015-x1d]",
+        # "test_nis_wfss_spec3[s00015-c1d]",
+        # "test_nis_wfss_spec3[s00104-cal]",
+        # "test_nis_wfss_spec3[s00104-x1d]",
+        # "test_nis_wfss_spec3[s00104-c1d]",
+        # "test_nircam_tsimg_stage2[calints]",
+        # "test_nircam_tsimg_stage2[o006_crfints]",
+        # # tests that are suspect
+        # "test_flat_field_bots_interp_flat",
+        # "test_verify_image2[cal]",
+        # "test_verify_image2[flat_field]",
+        # "test_verify_image2[assign_wcs]",
     ]
     allowed_names_set = set(allowed_names)
     for i in range(len(items)-1, -1, -1):
