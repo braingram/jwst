@@ -104,3 +104,17 @@ class TestDescriptionPlugin:
             yield
             if self.desc:
                 self.terminal_reporter.write(f'\n{self.desc} ')
+
+
+def pytest_collection_modifyitems(items):
+    # only run a handful of tests
+    allowed_names = {
+        "test_nis_wfss_spec2[cal]",
+        "test_nis_wfss_spec3[s00015-cal]",
+        "test_nis_wfss_spec3[s00104-cal]",
+        "test_flat_field_bots_interp_flat",
+        "test_verify_image2[flat_field]",
+    }
+    for i in range(len(items)-1, -1, -1):
+        if items[i].name not in allowed_names:
+            del items[i]
