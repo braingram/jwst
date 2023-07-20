@@ -108,7 +108,7 @@ class TestDescriptionPlugin:
 
 def pytest_collection_modifyitems(items):
     # only run a handful of tests
-    allowed_names = {
+    allowed_names = [
         # tests that have previously failed
         "test_nis_wfss_spec2[cal]",
         "test_nis_wfss_spec2[esec]",
@@ -130,7 +130,11 @@ def pytest_collection_modifyitems(items):
         "test_verify_image2[cal]",
         "test_verify_image2[flat_field]",
         "test_verify_image2[assign_wcs]",
-    }
+    ]
+    allowed_names_set = set(allowed_names)
     for i in range(len(items)-1, -1, -1):
-        if items[i].name not in allowed_names:
+        if items[i].name not in allowed_names_set:
             del items[i]
+
+    order_by_name = {n: i for (i, n) in enumerate(allowed_names)}
+    items[:] = sorted(items, key=lambda i: order_by_name[i.name])
