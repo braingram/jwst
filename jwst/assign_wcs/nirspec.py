@@ -31,6 +31,7 @@ from .util import (
 )
 from . import pointing
 from ..lib.exposure_types import is_nrs_ifu_lamp
+from ..lib.wcs_utils import shallow_copy_wcs
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -1608,10 +1609,10 @@ def _nrs_wcs_set_input(input_model, slit_name):
     wcsobj : `~gwcs.wcs.WCS`
         WCS object for this slit.
     """
-    import copy
     wcsobj = input_model.meta.wcs
 
-    slit_wcs = copy.deepcopy(wcsobj)
+    slit_wcs = shallow_copy_wcs(wcsobj)
+
     slit_wcs.set_transform('sca', 'gwa', wcsobj.pipeline[1].transform[1:])
     g2s = slit_wcs.pipeline[2].transform
     slit_wcs.set_transform('gwa', 'slit_frame', g2s.get_model(slit_name))

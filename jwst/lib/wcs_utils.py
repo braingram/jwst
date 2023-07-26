@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 
@@ -75,3 +77,12 @@ def get_wavelengths(model, exp_type="", order=None, use_wavecorr=None):
             wl_array = wcs(grid[1], grid[0])[2]
 
     return wl_array
+
+
+def shallow_copy_wcs(wcs):
+    copied_wcs = copy.copy(wcs)
+    for k in wcs.__dict__:
+        copied_wcs.__dict__[k] = copy.copy(wcs.__dict__[k])
+    for (i, s) in enumerate(wcs._pipeline):
+        copied_wcs._pipeline[i] = copy.copy(s)
+    return copied_wcs
