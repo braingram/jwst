@@ -10,9 +10,9 @@ import sys
 
 import asdf
 from astropy.io.fits.diff import FITSDiff
+import ci_watson.artifactory_helpers
 from ci_watson.artifactory_helpers import (
     check_url,
-    get_bigdata_root,
     get_bigdata,
     BigdataError,
 )
@@ -25,6 +25,15 @@ from jwst.stpipe import Step
 
 # Define location of default Artifactory API key, for Jenkins use only
 ARTIFACTORY_API_KEY_FILE = '/eng/ssb2/keys/svc_rodata.key'
+
+
+BIGDATA_ROOT = os.environ['TEST_BIGDATA']
+
+
+def get_bigdata_root():
+    return BIGDATA_ROOT
+
+ci_watson.artifactory_helpers.get_bigdata_root = get_bigdata_root
 
 
 class RegtestData:
