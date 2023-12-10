@@ -11,6 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+# a meaningless docs change
+
 import datetime
 import importlib
 import sys

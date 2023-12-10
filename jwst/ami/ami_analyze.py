@@ -1,4 +1,5 @@
 #  Module for applying the LG-PLUS algorithm to an AMI exposure
+# a meaningless 'code' change
 import logging
 import numpy as np
 
