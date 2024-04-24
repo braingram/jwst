@@ -192,12 +192,19 @@ class ModelLibrary(Sequence):
 
     # TODO crds_observatory, get_crds_parameters, when stpipe uses these...
 
+    def finalize_result(self, step, reference_files_used):
+        with self:
+            for (i, model) in enumerate(self):
+                step.finalize_result(model, reference_files_used)
+                self[i] = model
+
     def __enter__(self):
         self._open = True
         return self
 
     def __exit__(self, *args):
         self._open = False
+        # TODO chain exception in *args
         if self._ledger:
             raise ValueError(f"ModelLibrary has {len(self._ledger)} un-returned models")
 

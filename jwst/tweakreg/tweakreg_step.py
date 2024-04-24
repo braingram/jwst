@@ -42,20 +42,6 @@ _SINGLE_GROUP_REFCAT_STR = _oxford_or_str_join(SINGLE_GROUP_REFCAT)
 
 __all__ = ['TweakRegStep']
 
-class _LibraryToContainer:
-    def run(self, library):
-        models = []
-        # FIXME stpipe will need to be refactored as it
-        # iterates through the models multiple times and modifies
-        # them
-        return models
-        with library:
-            for (i, model) in enumerate(library):
-                models.append(model)
-                library[i] = model
-        return ModelContainer(models)
-
-_library_to_container = _LibraryToContainer()
 
 class TweakRegStep(Step):
     """
@@ -139,13 +125,6 @@ class TweakRegStep(Step):
 
     def process(self, input):
         image_library = ModelLibrary(input, on_disk=True)
-
-        # FIXME stpipe will have issues with ModelLibrary when
-        # it tries to index the contained models without first
-        # opening the library so we add a post hook to convert
-        # it to a container
-        if _library_to_container not in self._post_hooks:
-            self._post_hooks.append(_library_to_container)
 
         if len(image_library) == 0:
             raise ValueError("Input must contain at least one image model.")
