@@ -7,6 +7,8 @@ from astropy.io import fits
 
 from stdatamodels.jwst.datamodels.util import open as datamodels_open
 
+from .container import ModelContainer
+
 
 class _OnDiskModelStore(MutableMapping):
     def __init__(self, memmap=False, directory=None):
@@ -188,9 +190,23 @@ class ModelLibrary(Sequence):
         # this returns an OPEN model, it's up to calling code to close this
         return model
 
-    # TODO save? is this needed?
+    # TODO save, required by stpipe
 
     # TODO crds_observatory, get_crds_parameters, when stpipe uses these...
+
+    def _to_container(self):
+        # copy over "in-memory" options
+        # init with no "models"
+        container = ModelContainer([], save_open=not self._on_disk, return_open=not self._on_disk)
+        for member in self._members:
+            filename = os.path.join(self._asn_dir, member['expname'])
+            container.append(filename)
+        # TODO asn data?
+        # give container a ref to this library to stop the temporary directory from
+        # being deleted until the container is freed
+        container._library = self
+        # FIXME container with filenames already skip finalize_result
+        return container
 
     def finalize_result(self, step, reference_files_used):
         with self:

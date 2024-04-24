@@ -24,6 +24,7 @@ from stdatamodels.jwst.datamodels.util import (
 )
 
 from jwst.datamodels import ModelContainer
+from jwst.datamodels.library import ModelLibrary
 
 from ..stpipe import Step
 
@@ -72,23 +73,33 @@ class SkyMatchStep(Step):
         self.minimize_memory = minimize_memory
 
     def process(self, input):
+        # FIXME not sure why this is hard-coded...
         self.log.setLevel(logging.DEBUG)
-        # for now turn off memory optimization until we have better machinery
-        # to handle outputs in a consistent way.
 
-        if hasattr(self, 'minimize_memory') and self.minimize_memory:
-            self._is_asn = (
-                is_association(input) or isinstance(input, str)
-            )
-
+        if isinstance(input, ModelLibrary):
+            # TODO API for querying on_disk?
+            self.minimize_memory = input._on_disk
+            self._is_asn = input._on_disk
+            # for now, convert the ModelLibrary to a ModelContainer so skymatch
+            # can remain largely unchanged
+            img = input._to_container()
         else:
-            self._is_asn = False
+            # for now turn off memory optimization until we have better machinery
+            # to handle outputs in a consistent way.
 
-        img = ModelContainer(
-            input,
-            save_open=not self._is_asn,
-            return_open=not self._is_asn
-        )
+            if hasattr(self, 'minimize_memory') and self.minimize_memory:
+                self._is_asn = (
+                    is_association(input) or isinstance(input, str)
+                )
+
+            else:
+                self._is_asn = False
+
+            img = ModelContainer(
+                input,
+                save_open=not self._is_asn,
+                return_open=not self._is_asn
+            )
 
         self._dqbits = interpret_bit_flags(self.dqbits, flag_name_map=pixel)
 
@@ -142,7 +153,8 @@ class SkyMatchStep(Step):
                         "COMPLETE" if gim.is_sky_valid else "SKIPPED"
                     )
 
-        return input if self._is_asn else img
+        #return input if self._is_asn else img
+        return img
 
     def _imodel2skyim(self, image_model):
         input_image_model = image_model

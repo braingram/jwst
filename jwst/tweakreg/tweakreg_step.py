@@ -14,7 +14,6 @@ from tweakwcs.imalign import align_wcs
 from tweakwcs.correctors import JWSTWCSCorrector
 from tweakwcs.matchutils import XYXYMatch
 
-from jwst.datamodels import ModelContainer
 from jwst.datamodels.library import ModelLibrary
 
 # LOCAL
@@ -124,7 +123,10 @@ class TweakRegStep(Step):
 
 
     def process(self, input):
-        image_library = ModelLibrary(input, on_disk=True)
+        if isinstance(input, ModelLibrary):
+            image_library = input
+        else:
+            image_library = ModelLibrary(input, on_disk=True)
 
         if len(image_library) == 0:
             raise ValueError("Input must contain at least one image model.")

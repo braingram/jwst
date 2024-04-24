@@ -75,7 +75,13 @@ class OutlierDetectionStep(Step):
     def process(self, input_data):
         """Perform outlier detection processing on input data."""
 
-        with datamodels.open(input_data, save_open=self.in_memory) as input_models:
+        if isinstance(input_data, ModelContainer):
+            input_models = input_data
+            # this step expects return_open
+            input_models._return_open = True
+        else:
+            input_models = datamodels.open(input_data, save_open=self.in_memory)
+        with input_models:
             self.input_models = input_models
             if not isinstance(self.input_models, ModelContainer):
                 self.input_container = False

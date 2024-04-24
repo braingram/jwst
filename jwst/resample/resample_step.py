@@ -64,7 +64,10 @@ class ResampleStep(Step):
 
     def process(self, input):
 
-        input = datamodels.open(input)
+        if not isinstance(input, ModelContainer):
+            input = datamodels.open(input)
+            # this step expects return_open
+            input_models._return_open = True
 
         if isinstance(input, ModelContainer):
             input_models = input

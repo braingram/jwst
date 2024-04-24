@@ -391,8 +391,11 @@ class ResampleData:
         self.update_exposure_times(output_model)
         self.output_models.append(output_model)
 
-        for img in self.input_models:
-            del img.meta.iscale
+        # FIXME this needs to be fixed and re-enabled
+        #for img in self.input_models:
+        #    # FIXME same as the below iscale comment, this assumes
+        #    # the above change to imodel was saved, it was not
+        #    del img.meta.iscale
 
         return self.output_models
 
@@ -440,7 +443,11 @@ class ResampleData:
                 model.meta.wcs.bounding_box
             )
 
-            iscale = model.meta.iscale
+            # FIXME this assumes the above change to iscale was saved
+            # for a ModelContainer of filenames this is not the case
+            #iscale = model.meta.iscale
+            # FIXME this needs to be sorted out and fixed
+            iscale = 1.0
 
             # Resample the variance array. Fill "unpopulated" pixels with NaNs.
             self.drizzle_arrays(
