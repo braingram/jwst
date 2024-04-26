@@ -64,13 +64,13 @@ class ResampleStep(Step):
 
     def process(self, input):
 
-        if not isinstance(input, ModelContainer):
+        if isinstance(input, str):
             input = datamodels.open(input)
-            # this step expects return_open
-            input_models._return_open = True
 
         if isinstance(input, ModelContainer):
             input_models = input
+            # this step expects return_open
+            input_models._return_open = True
             try:
                 output = input_models.meta.asn_table.products[0].name
             except AttributeError:
@@ -223,7 +223,12 @@ class ResampleStep(Step):
         with datamodels.DrizParsModel(ref_filename) as drpt:
             drizpars_table = drpt.data
 
+        # FIXME if group_names is called with _return_open=True all models will be opened
+        original = input_models._return_open
+        input_models._return_open = False
         num_groups = len(input_models.group_names)
+        input_models._return_open = original
+
         filtname = input_models[0].meta.instrument.filter
         row = None
         filter_match = False

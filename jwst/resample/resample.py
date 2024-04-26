@@ -219,13 +219,22 @@ class ResampleData:
 
         Used for outlier detection
         """
-        for exposure in self.input_models.models_grouped:
+        # FIXME models_grouped if _return_open is True will open and keep all models
+        # in memory. Work around this...
+        if self.input_models._return_open and isinstance(self.input_models._models[0], str):
+            original = self.input_models._return_open
+            self.input_models._return_open = False
+            groups = self.input_models.models_grouped
+        else:
+            groups = self.input_models.models_grouped
+        for exposure in groups:
             output_model = self.blank_output
             # Determine output file type from input exposure filenames
             # Use this for defining the output filename
-            indx = exposure[0].meta.filename.rfind('.')
-            output_type = exposure[0].meta.filename[indx:]
-            output_root = '_'.join(exposure[0].meta.filename.replace(
+            example_image = datamodels.open(exposure[0])
+            indx = example_image.meta.filename.rfind('.')
+            output_type = example_image.meta.filename[indx:]
+            output_root = '_'.join(example_image.meta.filename.replace(
                 output_type, '').split('_')[:-1])
             if self.asn_id is not None:
                 output_model.meta.filename = f'{output_root}_{self.asn_id}_outlier_i2d{output_type}'
@@ -313,7 +322,12 @@ class ResampleData:
         output_model = self.blank_output.copy()
         output_model.meta.filename = self.output_filename
         output_model.meta.resample.weight_type = self.weight_type
+        # FIXME if done with _return_open==True the next line will open all
+        # models in the container
+        original = self.input_models._return_open
+        self.input_models._return_open = False
         output_model.meta.resample.pointings = len(self.input_models.group_names)
+        self.input_models._return_open = original
 
         if self.blendheaders:
             self.blend_output_metadata(output_model)
@@ -490,16 +504,27 @@ class ResampleData:
         duration = 0.0
         total_measurement_time = 0.0
         measurement_time_failures = []
-        for exposure in self.input_models.models_grouped:
-            total_exposure_time += exposure[0].meta.exposure.exposure_time
-            if not resample_utils._check_for_tmeasure(exposure[0]):
+        # FIXME models_grouped if _return_open is True will open and keep all models
+        # in memory. Work around this...
+        if self.input_models._return_open and isinstance(self.input_models._models[0], str):
+            original = self.input_models._return_open
+            self.input_models._return_open = False
+            groups = self.input_models.models_grouped
+        else:
+            groups = self.input_models.models_grouped
+        for exposure in groups:
+            model = exposure[0]
+            if isinstance(model, str):
+                model = datamodels.open(model)
+            total_exposure_time += model.meta.exposure.exposure_time
+            if not resample_utils._check_for_tmeasure(model):
                 measurement_time_failures.append(1)
             else:
-                total_measurement_time += exposure[0].meta.exposure.measurement_time
+                total_measurement_time += model.meta.exposure.measurement_time
                 measurement_time_failures.append(0)
-            exposure_times['start'].append(exposure[0].meta.exposure.start_time)
-            exposure_times['end'].append(exposure[0].meta.exposure.end_time)
-            duration += exposure[0].meta.exposure.duration
+            exposure_times['start'].append(model.meta.exposure.start_time)
+            exposure_times['end'].append(model.meta.exposure.end_time)
+            duration += model.meta.exposure.duration
 
         # Update some basic exposure time values based on output_model
         output_model.meta.exposure.exposure_time = total_exposure_time

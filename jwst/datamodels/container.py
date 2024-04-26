@@ -498,7 +498,12 @@ to supply custom catalogs.
         """
         result = []
         for group in self.models_grouped:
-            result.append(group[0].meta.group_id)
+            model = group[0]
+            if isinstance(model, str):
+                with datamodel_open(model) as example:
+                    result.append(example.meta.group_id)
+            else:
+                result.append(model.meta.group_id)
         return result
 
     def close(self):

@@ -280,6 +280,9 @@ class OutlierDetection:
 
         log.info("Blotting median")
         for model in self.input_models:
+            if isinstance(model, str):
+                model = datamodel_open(model)
+
             blotted_median = model.copy()
 
             # clean out extra data not related to blot result
@@ -325,7 +328,18 @@ class OutlierDetection:
         log.info("Flagging outliers")
         for image, blot in zip(self.input_models, blot_models):
             blot = datamodel_open(blot)
+            # FIXME this block did not support a ModelContainer of filenames
+            # the quick fix here is likely not correct and even if correct it
+            # overwrites the input file which should likely be avoided.
+            if isinstance(image, str):
+                image = datamodel_open(image)
+                was_filename = True
+            else:
+                was_filename = False
             flag_cr(image, blot, **self.outlierpars)
+            if was_filename:
+                image.save(image.meta.filename)
+                image.close()
             blot.close()
             del blot
 

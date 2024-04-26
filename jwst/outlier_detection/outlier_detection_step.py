@@ -178,6 +178,14 @@ class OutlierDetectionStep(Step):
                 if not self.save_intermediate_results:
                     self.log.debug("The following files will be deleted since save_intermediate_results=False:")
                 for model in self.input_models:
+                    # FIXME this block did not support a ModelContainer of filenames
+                    # the updates below highlight one issue, where do we save the file?
+                    # do we overwrite the filename?
+                    if isinstance(model, str):
+                        model = datamodels.open(model)
+                        was_filename = True
+                    else:
+                        was_filename = False
                     model.meta.cal_step.outlier_detection = state
                     if not self.save_intermediate_results:
                         #  Remove unwanted files
@@ -194,6 +202,9 @@ class OutlierDetectionStep(Step):
                             if os.path.isfile(fle):
                                 os.remove(fle)
                                 self.log.debug(f"    {fle}")
+                    if was_filename:
+                        model.save(model.meta.filename)
+                        model.close()
             else:
                 self.input_models.meta.cal_step.outlier_detection = state
             return self.input_models
