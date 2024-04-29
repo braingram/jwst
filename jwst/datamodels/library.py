@@ -15,7 +15,7 @@ class _OnDiskModelStore(MutableMapping):
         self._memmap = memmap
         if directory is None:
             # when tem
-            self._tempdir = tempfile.TemporaryDirectory()
+            self._tempdir = tempfile.TemporaryDirectory(dir='')
             # TODO should I make this a path?
             self._dir = self._tempdir.name
         else:
@@ -195,16 +195,24 @@ class ModelLibrary(Sequence):
     # TODO crds_observatory, get_crds_parameters, when stpipe uses these...
 
     def _to_container(self):
+        # create a temporary directory
+        tmpdir = tempfile.TemporaryDirectory(dir='')
+
+        # write out all models (with filenames from member list)
+        fns = []
+        with self:
+            for (i, model) in enumerate(self):
+                fn = os.path.join(tmpdir.name, model.meta.filename)
+                model.save(fn)
+                fns.append(fn)
+                self[i] = model
+
+        # use the new filenames for the container
         # copy over "in-memory" options
         # init with no "models"
-        container = ModelContainer([], save_open=not self._on_disk, return_open=not self._on_disk)
-        for member in self._members:
-            filename = os.path.join(self._asn_dir, member['expname'])
-            container.append(filename)
-        # TODO asn data?
-        # give container a ref to this library to stop the temporary directory from
-        # being deleted until the container is freed
-        container._library = self
+        container = ModelContainer(fns, save_open=not self._on_disk, return_open=not self._on_disk)
+        # give the model container a reference to the temporary directory so it's not deleted
+        container._tmpdir = tmpdir
         # FIXME container with filenames already skip finalize_result
         return container
 
