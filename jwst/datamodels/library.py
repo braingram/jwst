@@ -172,6 +172,14 @@ class ModelLibrary(Sequence):
         # and store it
         self._model_store[index] = model
 
+    def discard(self, index, model):
+        if index not in self._ledger:
+            raise ValueError("Attempt to discard non-borrowed model")
+
+        # un-track this model
+        del self._ledger[index]
+        # but do not store it
+
     def __iter__(self):
         for i in range(len(self)):
             yield self[i]
@@ -226,11 +234,33 @@ class ModelLibrary(Sequence):
         self._open = True
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type, exc_value, traceback):
         self._open = False
-        # TODO chain exception in *args
+        if exc_value:
+            # if there is already an exception, don't worry about checking the ledger
+            # instead allowing the calling code to raise the original error to provide
+            # a more useful feedback without any chained ledger exception about
+            # un-returned models
+            return
         if self._ledger:
             raise ValueError(f"ModelLibrary has {len(self._ledger)} un-returned models")
+
+    def index(self, attribute, copy=False):
+        """
+        Access a single attribute from all models
+        """
+        # TODO do we want a "read-only" API that doesn't worry about re-assigning models?
+        for i in range(len(self)):
+            if i in self._model_store:
+                model = self._model_store[i]
+            else:
+                # FIXME we open a model here, close it?
+                model = self._load_member(i)
+            attr = model[attribute]
+            if copy:
+                yield attr.copy()
+            else:
+                yield attr
 
 
 def _attrs_to_group_id(
