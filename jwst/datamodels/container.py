@@ -350,12 +350,13 @@ to supply custom catalogs.
         if self.asn_file_path is not None:
             self.asn_table_name = op.basename(self.asn_file_path)
             self.asn_pool_name = asn_data['asn_pool']
-            for model in self:
-                try:
-                    model.meta.asn.table_name = self.asn_table_name
-                    model.meta.asn.pool_name = self.asn_pool_name
-                except AttributeError:
-                    pass
+            if self._save_open:
+                for model in self:
+                    try:
+                        model.meta.asn.table_name = self.asn_table_name
+                        model.meta.asn.pool_name = self.asn_pool_name
+                    except AttributeError:
+                        pass
 
     def save(self,
              path=None,

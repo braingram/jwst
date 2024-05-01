@@ -82,15 +82,14 @@ class OutlierDetectionStep(Step):
         else:
             input_models = datamodels.open(input_data, save_open=self.in_memory)
         with input_models:
-            self.input_models = input_models
-            if not isinstance(self.input_models, ModelContainer):
+            if not isinstance(input_models, ModelContainer):
                 self.input_container = False
             else:
                 self.input_container = True
             # Setup output path naming if associations are involved.
             asn_id = None
             try:
-                asn_id = self.input_models.meta.asn_table.asn_id
+                asn_id = input_models.meta.asn_table.asn_id
             except (AttributeError, KeyError):
                 pass
             if asn_id is None:
@@ -132,11 +131,11 @@ class OutlierDetectionStep(Step):
             # Add logic here to select which version of OutlierDetection
             # needs to be used depending on the input data
             if self.input_container:
-                single_model = self.input_models[0]
+                single_model = input_models[0]
             else:
-                single_model = self.input_models
+                single_model = input_models
             exptype = single_model.meta.exposure.type
-            self.check_input()
+            self.check_input(input_models)
 
             # check for TSO models first
             if is_tso(single_model) or exptype in CORON_IMAGE_MODES:
@@ -160,24 +159,24 @@ class OutlierDetectionStep(Step):
 
             if not self.valid_input:
                 if self.input_container:
-                    for model in self.input_models:
+                    for model in input_models:
                         model.meta.cal_step.outlier_detection = "SKIPPED"
                 else:
-                    self.input_models.meta.cal_step.outlier_detection = "SKIPPED"
+                    input_models.meta.cal_step.outlier_detection = "SKIPPED"
                 self.skip = True
-                return self.input_models
+                return input_models
 
             self.log.debug(f"Using {detection_step.__name__} class for outlier_detection")
 
             # Set up outlier detection, then do detection
-            step = detection_step(self.input_models, asn_id=asn_id, **pars)
-            step.do_detection()
+            step = detection_step(asn_id=asn_id, **pars)
+            step.do_detection(input_models)
 
             state = 'COMPLETE'
             if self.input_container:
                 if not self.save_intermediate_results:
                     self.log.debug("The following files will be deleted since save_intermediate_results=False:")
-                for model in self.input_models:
+                for model in input_models:
                     # FIXME this block did not support a ModelContainer of filenames
                     # the updates below highlight one issue, where do we save the file?
                     # do we overwrite the filename?
@@ -206,20 +205,20 @@ class OutlierDetectionStep(Step):
                         model.save(model.meta.filename)
                         model.close()
             else:
-                self.input_models.meta.cal_step.outlier_detection = state
-            return self.input_models
+                input_models.meta.cal_step.outlier_detection = state
+            return input_models
 
-    def check_input(self):
+    def check_input(self, models):
         """Use this method to determine whether input is valid or not."""
         if self.input_container:
-            self._check_input_container()
+            self._check_input_container(models)
         else:
-            self._check_input_cube()
+            self._check_input_cube(models)
 
-    def _check_input_container(self):
+    def _check_input_container(self, models):
         """Check to see whether input is the expected ModelContainer object."""
-        ninputs = len(self.input_models)
-        if not isinstance(self.input_models, ModelContainer):
+        ninputs = len(models)
+        if not isinstance(models, ModelContainer):
             self.log.warning("Input is not a ModelContainer")
             self.log.warning("Outlier detection step will be skipped")
             self.valid_input = False
@@ -231,10 +230,10 @@ class OutlierDetectionStep(Step):
             self.valid_input = True
             self.log.info(f"Performing outlier detection on {ninputs} inputs")
 
-    def _check_input_cube(self):
+    def _check_input_cube(self, models):
         """Check to see whether input is the expected CubeModel object."""
-        ninputs = self.input_models.shape[0]
-        if not isinstance(self.input_models, datamodels.CubeModel):
+        ninputs = models.shape[0]
+        if not isinstance(models, datamodels.CubeModel):
             self.log.warning("Input is not the expected CubeModel")
             self.log.warning("Outlier detection step will be skipped")
             self.valid_input = False

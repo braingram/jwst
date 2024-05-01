@@ -52,28 +52,21 @@ class OutlierDetection:
 
     default_suffix = 'i2d'
 
-    def __init__(self, input_models, **pars):
+    def __init__(self, **pars):
         """
         Initialize the class with input ModelContainers.
 
         Parameters
         ----------
-        input_models : list of DataModels, str
-            list of data models as ModelContainer or ASN file,
-            one data model for each input image
-
         pars : dict, optional
             Optional user-specified parameters to modify how outlier_detection
             will operate.  Valid parameters include:
             - resample_suffix
 
         """
-        self.inputs = input_models
 
         self.outlierpars = {}
         self.outlierpars.update(pars)
-        # Insure that self.input_models always refers to a ModelContainer
-        # representation of the inputs
 
         # Define how file names are created
         self.make_output_path = pars.get(
@@ -81,7 +74,7 @@ class OutlierDetection:
             partial(Step._make_output_path, None)
         )
 
-    def _convert_inputs(self):
+    def _convert_inputs(self, models):
         """Convert input into datamodel required for processing.
 
         This method converts `self.inputs` into a version of
@@ -96,24 +89,25 @@ class OutlierDetection:
 
         """
         bits = self.outlierpars['good_bits']
-        if isinstance(self.inputs, ModelContainer):
-            self.input_models = self.inputs
+        if isinstance(models, ModelContainer):
             self.converted = False
+            return models
         else:
-            self.input_models = ModelContainer()
-            num_inputs = self.inputs.data.shape[0]
+            container = ModelContainer()
+            num_inputs = models.data.shape[0]
             log.debug("Converting CubeModel to ModelContainer with {} images".
                       format(num_inputs))
-            for i in range(self.inputs.data.shape[0]):
-                image = datamodels.ImageModel(data=self.inputs.data[i],
-                                              err=self.inputs.err[i],
-                                              dq=self.inputs.dq[i])
-                image.meta = self.inputs.meta
+            for i in range(models.data.shape[0]):
+                image = datamodels.ImageModel(data=models.data[i],
+                                              err=models.err[i],
+                                              dq=models.dq[i])
+                image.meta = models.meta
                 image.wht = build_driz_weight(image,
                                               weight_type=self.outlierpars['weight_type'],
                                               good_bits=bits)
-                self.input_models.append(image)
+                container.append(image)
             self.converted = True
+            return container
 
     def build_suffix(self, **pars):
         """Build suffix.
@@ -130,9 +124,9 @@ class OutlierDetection:
         log.debug("Defined output product suffix as: {}".format(
             self.resample_suffix))
 
-    def do_detection(self):
+    def do_detection(self, models):
         """Flag outlier pixels in DQ of input images."""
-        self._convert_inputs()
+        models = self._convert_inputs(models)
         self.build_suffix(**self.outlierpars)
 
         pars = self.outlierpars
@@ -140,16 +134,16 @@ class OutlierDetection:
         if pars['resample_data']:
             # Start by creating resampled/mosaic images for
             # each group of exposures
-            resamp = resample.ResampleData(self.input_models, single=True,
+            resamp = resample.ResampleData(models, single=True,
                                            blendheaders=False, **pars)
-            drizzled_models = resamp.do_drizzle()
+            drizzled_models = resamp.do_drizzle(models)
 
         else:
             # for non-dithered data, the resampled image is just the original image
-            drizzled_models = self.input_models
-            for i in range(len(self.input_models)):
+            drizzled_models = models
+            for i in range(len(models)):
                 drizzled_models[i].wht = build_driz_weight(
-                    self.input_models[i],
+                    models[i],
                     weight_type=pars['weight_type'],
                     good_bits=pars['good_bits'])
 
@@ -175,17 +169,17 @@ class OutlierDetection:
         if pars['resample_data']:
             # Blot the median image back to recreate each input image specified
             # in the original input list/ASN/ModelContainer
-            blot_models = self.blot_median(median_model)
+            blot_models = self.blot_median(median_model, models)
 
         else:
             # Median image will serve as blot image
             blot_models = ModelContainer(open_models=False)
-            for i in range(len(self.input_models)):
+            for i in range(len(models)):
                 blot_models.append(median_model)
 
         # Perform outlier detection using statistical comparisons between
         # each original input image and its blotted version of the median image
-        self.detect_outliers(blot_models)
+        self.detect_outliers(blot_models, models)
 
         # clean-up (just to be explicit about being finished with
         # these results)
@@ -270,7 +264,7 @@ class OutlierDetection:
 
         return median_image
 
-    def blot_median(self, median_model):
+    def blot_median(self, median_model, models):
         """Blot resampled median image back to the detector images."""
         interp = self.outlierpars.get('interp', 'linear')
         sinscl = self.outlierpars.get('sinscl', 1.0)
@@ -279,7 +273,7 @@ class OutlierDetection:
         blot_models = ModelContainer(open_models=False)
 
         log.info("Blotting median")
-        for model in self.input_models:
+        for model in models:
             if isinstance(model, str):
                 model = datamodel_open(model)
 
@@ -299,10 +293,12 @@ class OutlierDetection:
 
             # Append model name to the ModelContainer so it is not passed in memory
             blot_models.append(model_path)
+            del blotted_median
+            del model
 
         return blot_models
 
-    def detect_outliers(self, blot_models):
+    def detect_outliers(self, blot_models, models):
         """Flag DQ array for cosmic rays in input images.
 
         The science frame in each ImageModel in input_models is compared to
@@ -326,7 +322,7 @@ class OutlierDetection:
 
         """
         log.info("Flagging outliers")
-        for image, blot in zip(self.input_models, blot_models):
+        for image, blot in zip(models, blot_models):
             blot = datamodel_open(blot)
             # FIXME this block did not support a ModelContainer of filenames
             # the quick fix here is likely not correct and even if correct it
@@ -345,8 +341,10 @@ class OutlierDetection:
 
         if self.converted:
             # Make sure actual input gets updated with new results
-            for i in range(len(self.input_models)):
-                self.inputs.dq[i, :, :] = self.input_models[i].dq
+            # FIXME
+            #for i in range(len(self.input_models)):
+            #    self.inputs.dq[i, :, :] = self.input_models[i].dq
+            raise NotImplementedError()
 
 
 def flag_cr(sci_image, blot_image, snr="5.0 4.0", scale="1.2 0.7", backg=0,

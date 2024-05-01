@@ -150,18 +150,12 @@ def reproject(wcs1, wcs2):
         raise TypeError("Input should be a WCS") from err
 
     def _reproject(x, y):
-        sky = forward_transform(x, y)
-        flat_sky = []
-        for axis in sky:
-            flat_sky.append(axis.flatten())
+        flat_sky = tuple((axis.flat for axis in forward_transform(x, y)))
         # Filter out RuntimeWarnings due to computed NaNs in the WCS
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
-            det = backward_transform(*tuple(flat_sky))
-        det_reshaped = []
-        for axis in det:
-            det_reshaped.append(axis.reshape(x.shape))
-        return tuple(det_reshaped)
+            det = backward_transform(*flat_sky)
+        return tuple((axis.reshape(x.shape) for axis in det))
     return _reproject
 
 

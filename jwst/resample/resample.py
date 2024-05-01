@@ -49,9 +49,6 @@ class ResampleData:
         """
         Parameters
         ----------
-        input_models : list of objects
-            list of data models, one for each input image
-
         output : str
             filename for output
 
@@ -68,7 +65,6 @@ class ResampleData:
                 deleted from memory. Default value is `True` to keep
                 all products in memory.
         """
-        self.input_models = input_models
         self.output_filename = output
         self.pscale_ratio = pscale_ratio
         self.single = single
@@ -119,7 +115,7 @@ class ResampleData:
         else:
             # Define output WCS based on all inputs, including a reference WCS:
             self.output_wcs = resample_utils.make_output_wcs(
-                self.input_models,
+                input_models,
                 ref_wcs=output_wcs,
                 pscale_ratio=self.pscale_ratio,
                 pscale=pscale,
@@ -182,17 +178,15 @@ class ResampleData:
             output_pix_area * np.rad2deg(3600)**2
         )
 
-        self.output_models = ModelContainer(open_models=False)
-
-    def do_drizzle(self):
+    def do_drizzle(self, models):
         """Pick the correct drizzling mode based on self.single
         """
         if self.single:
-            return self.resample_many_to_many()
+            return self.resample_many_to_many(models)
         else:
-            return self.resample_many_to_one()
+            return self.resample_many_to_one(models)
 
-    def blend_output_metadata(self, output_model):
+    def blend_output_metadata(self, output_model, models):
         """Create new output metadata based on blending all input metadata."""
         # Run fitsblender on output product
         output_file = output_model.meta.filename
@@ -205,12 +199,12 @@ class ResampleData:
         log.info('Blending metadata for {}'.format(output_file))
         blendmeta.blendmodels(
             output_model,
-            inputs=self.input_models,
+            inputs=models,
             output=output_file,
             ignore=ignore_list
         )
 
-    def resample_many_to_many(self):
+    def resample_many_to_many(self, models):
         """Resample many inputs to many outputs where outputs have a common frame.
 
         Coadd only different detectors of the same exposure, i.e. map NRCA5 and
@@ -221,12 +215,13 @@ class ResampleData:
         """
         # FIXME models_grouped if _return_open is True will open and keep all models
         # in memory. Work around this...
-        if self.input_models._return_open and isinstance(self.input_models._models[0], str):
-            original = self.input_models._return_open
-            self.input_models._return_open = False
-            groups = self.input_models.models_grouped
+        if models._return_open and isinstance(models._models[0], str):
+            original = models._return_open
+            models._return_open = False
+            groups = models.models_grouped
         else:
-            groups = self.input_models.models_grouped
+            groups = models.models_grouped
+        output_models = []
         for exposure in groups:
             output_model = self.blank_output
             # Determine output file type from input exposure filenames
@@ -306,15 +301,17 @@ class ResampleData:
                 output_name = output_model.meta.filename
                 output_model.save(output_name)
                 log.info(f"Saved model in {output_name}")
-                self.output_models.append(output_name)
+                output_models.append(output_name)
             else:
-                self.output_models.append(output_model.copy())
+                output_models.append(output_model.copy())
             output_model.data *= 0.
             output_model.wht *= 0.
 
-        return self.output_models
+        container = ModelContainer([], save_open=self.in_memory)
+        container._models = output_models
+        return container
 
-    def resample_many_to_one(self):
+    def resample_many_to_one(self, models):
         """Resample and coadd many inputs to a single output.
 
         Used for stage 3 resampling
@@ -324,20 +321,20 @@ class ResampleData:
         output_model.meta.resample.weight_type = self.weight_type
         # FIXME if done with _return_open==True the next line will open all
         # models in the container
-        original = self.input_models._return_open
-        self.input_models._return_open = False
-        output_model.meta.resample.pointings = len(self.input_models.group_names)
-        self.input_models._return_open = original
+        original = models._return_open
+        models._return_open = False
+        output_model.meta.resample.pointings = len(models.group_names)
+        models._return_open = original
 
         if self.blendheaders:
-            self.blend_output_metadata(output_model)
+            self.blend_output_metadata(output_model, models)
 
         # Initialize the output with the wcs
         driz = gwcs_drizzle.GWCSDrizzle(output_model, pixfrac=self.pixfrac,
                                         kernel=self.kernel, fillval=self.fillval)
 
         log.info("Resampling science data")
-        for img in self.input_models:
+        for img in models:
             input_pixflux_area = img.meta.photometry.pixelarea_steradians
             if (input_pixflux_area and
                     'SPECTRAL' not in img.meta.wcs.output_frame.axes_type):
@@ -388,9 +385,9 @@ class ResampleData:
             del data, inwht
 
         # Resample variances array in self.input_models to output_model
-        self.resample_variance_array("var_rnoise", output_model)
-        self.resample_variance_array("var_poisson", output_model)
-        self.resample_variance_array("var_flat", output_model)
+        self.resample_variance_array("var_rnoise", output_model, models)
+        self.resample_variance_array("var_poisson", output_model, models)
+        self.resample_variance_array("var_flat", output_model, models)
         output_model.err = np.sqrt(
             np.nansum(
                 [
@@ -402,8 +399,7 @@ class ResampleData:
             )
         )
 
-        self.update_exposure_times(output_model)
-        self.output_models.append(output_model)
+        self.update_exposure_times(output_model, models)
 
         # FIXME this needs to be fixed and re-enabled
         #for img in self.input_models:
@@ -411,9 +407,11 @@ class ResampleData:
         #    # the above change to imodel was saved, it was not
         #    del img.meta.iscale
 
-        return self.output_models
+        container = ModelContainer([], save_open=self.in_memory)
+        container._models = [output_model]
+        return container
 
-    def resample_variance_array(self, name, output_model):
+    def resample_variance_array(self, name, output_model, models):
         """Resample variance arrays from self.input_models to the output_model
 
         Resample the ``name`` variance array to the same name in output_model,
@@ -425,7 +423,7 @@ class ResampleData:
         inverse_variance_sum = np.full_like(output_model.data, np.nan)
 
         log.info(f"Resampling {name}")
-        for model in self.input_models:
+        for model in models:
             variance = getattr(model, name)
             if variance is None or variance.size == 0:
                 log.debug(
@@ -497,7 +495,7 @@ class ResampleData:
 
         setattr(output_model, name, output_variance)
 
-    def update_exposure_times(self, output_model):
+    def update_exposure_times(self, output_model, models):
         """Modify exposure time metadata in-place"""
         total_exposure_time = 0.
         exposure_times = {'start': [], 'end': []}
@@ -506,12 +504,12 @@ class ResampleData:
         measurement_time_failures = []
         # FIXME models_grouped if _return_open is True will open and keep all models
         # in memory. Work around this...
-        if self.input_models._return_open and isinstance(self.input_models._models[0], str):
-            original = self.input_models._return_open
-            self.input_models._return_open = False
-            groups = self.input_models.models_grouped
+        if models._return_open and isinstance(models._models[0], str):
+            original = models._return_open
+            models._return_open = False
+            groups = models.models_grouped
         else:
-            groups = self.input_models.models_grouped
+            groups = models.models_grouped
         for exposure in groups:
             model = exposure[0]
             if isinstance(model, str):
