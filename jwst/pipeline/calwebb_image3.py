@@ -67,7 +67,9 @@ class Image3Pipeline(Pipeline):
         self.outlier_detection.save_results = self.save_results
 
         self.resample.suffix = 'i2d'
-        self.resample.save_results = self.save_results
+        #self.resample.save_results = self.save_results
+        # FIXME is there a way to override save_results for one step in a pipeline?
+        self.resample.save_results = True
 
         self.source_catalog.save_results = self.save_results
 
