@@ -14,14 +14,24 @@ from .container import ModelContainer
 
 
 class LibraryError(Exception):
+    """
+    Generic ModelLibrary related exception
+    """
     pass
 
 
 class BorrowError(LibraryError):
+    """
+    Exception indicating an issue with model borrowing
+    """
     pass
 
 
 class ClosedLibraryError(LibraryError):
+    """
+    Exception indicating a library method was used outside of a
+    ``with`` context (that "opens" the library).
+    """
     pass
 
 
@@ -72,6 +82,28 @@ class _OnDiskModelStore(MutableMapping):
 
 
 class ModelLibrary(Sequence):
+    """
+    A "library" of models (loaded from an association file).
+
+    Do not anger the librarian!
+
+    The library owns all models from the association and it will handle
+    opening and closing files.
+
+    Models can be "borrowed" from the library (by iterating through the
+    library or indexing a specific model). However the library must be
+    "open" (used in a ``with`` context)  to borrow a model and the model
+    must be "returned" before the library "closes" (the ``with`` context exits).
+
+    >>> with library:   # doctest: +SKIP
+            model = library[0]  # borrow the first model
+            # do stuff with the model
+            library[0] = model  # return the model
+
+    Failing to "open" the library will result in a ClosedLibraryError.
+
+    Failing to "return" a borrowed model will result in a BorrowError.
+    """
     def __init__(self, init, asn_exptypes=None, asn_n_members=None, on_disk=False, memmap=False, temp_directory=None):
         self._asn_exptypes = asn_exptypes
         self._asn_n_members = asn_n_members
@@ -306,6 +338,9 @@ def _attrs_to_group_id(
         activity_id,
         exposure_number,
     ):
+    """
+    Combine a number of file metadata values into a ``group_id`` string
+    """
     return (
         f"jw{program_number}{observation_number}{visit_number}"
         f"_{visit_group}{sequence_id}{activity_id}"
@@ -315,8 +350,11 @@ def _attrs_to_group_id(
 
 def _file_to_group_id(filename):
     """
-    Compute a "group_id" without loading the file
-    as a DataModel
+    Compute a "group_id" without loading the file as a DataModel
+
+    This function will return the meta.group_id stored in the ASDF
+    extension (if it exists) or a group_id calculated from the
+    FITS headers.
     """
     # use astropy.io.fits directly to read header keywords
     # avoiding the DataModel overhead
@@ -348,7 +386,7 @@ def _file_to_group_id(filename):
 
 def _model_to_group_id(model):
     """
-    Compute a "group_id" from a model
+    Compute a "group_id" from a model using the DataModel interface
     """
     return _attrs_to_group_id(
         model.meta.observation.program_number,
