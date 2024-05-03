@@ -1,8 +1,11 @@
 from collections.abc import MutableMapping, Sequence
+import io
+from pathlib import Path
 import os.path
 import tempfile
 from types import MappingProxyType
 
+import asdf
 from astropy.io import fits
 
 from stdatamodels.jwst.datamodels.util import open as datamodels_open
@@ -71,7 +74,7 @@ class ModelLibrary(Sequence):
 
         # TODO path support
         # TODO model list support
-        if isinstance(init, str):
+        if isinstance(init, (str, Path)):
             self._asn_path = os.path.abspath(os.path.expanduser(os.path.expandvars(init)))
             self._asn_dir = os.path.dirname(self._asn_path)
             # load association
@@ -288,6 +291,10 @@ def _file_to_group_id(filename):
     # avoiding the DataModel overhead
     # TODO look up attribute to keyword in core schema
     with fits.open(filename) as ff:
+        if "ASDF" in ff:
+            asdf_yaml = asdf.util.load_yaml(io.BytesIO(ff['ASDF'].data.tobytes()))
+            if group_id := asdf_yaml.get('meta', {}).get('group_id'):
+                return group_id
         header = ff["PRIMARY"].header
         program_number = header["PROGRAM"]
         observation_number = header["OBSERVTN"]
