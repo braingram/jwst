@@ -13,6 +13,18 @@ from stdatamodels.jwst.datamodels.util import open as datamodels_open
 from .container import ModelContainer
 
 
+class LibraryError(Exception):
+    pass
+
+
+class BorrowError(LibraryError):
+    pass
+
+
+class ClosedLibraryError(LibraryError):
+    pass
+
+
 class _OnDiskModelStore(MutableMapping):
     def __init__(self, memmap=False, directory=None):
         self._memmap = memmap
@@ -44,6 +56,10 @@ class _OnDiskModelStore(MutableMapping):
 
         # save the model to the temporary location
         value.save(fn)
+
+    def __del__(self):
+        if hasattr(self, '_tempdir'):
+            self._tempdir.cleanup()
 
     def __delitem__(self, key):
         del self._filenames[key]
@@ -123,7 +139,19 @@ class ModelLibrary(Sequence):
     @property
     def asn(self):
         # return a "read only" association
-        return MappingProxyType(self._asn)
+        def _to_read_only(obj):
+            if isinstance(obj, dict):
+                return MappingProxyType(obj)
+            if isinstance(obj, list):
+                return tuple(obj)
+            return obj
+        return asdf.treeutil.walk_and_modify(self._asn, _to_read_only)
+
+    # TODO we may want to not expose this as it could go out-of-sync
+    # pretty easily with the actual models.
+    # @property
+    # def members(self):
+    #     return self.asn['products'][0]['members']
 
     @property
     def group_names(self):
@@ -147,11 +175,11 @@ class ModelLibrary(Sequence):
 
     def __getitem__(self, index):
         if not self._open:
-            raise ValueError("ModelLibrary is not open")
+            raise ClosedLibraryError("ModelLibrary is not open")
 
         # if model was already borrowed, raise
         if index in self._ledger:
-            raise ValueError("Attempt to double-borrow model")
+            raise BorrowError("Attempt to double-borrow model")
 
         if index in self._model_store:
             model = self._model_store[index]
@@ -167,7 +195,7 @@ class ModelLibrary(Sequence):
 
     def __setitem__(self, index, model):
         if index not in self._ledger:
-            raise ValueError("Attempt to return non-borrowed model")
+            raise BorrowError("Attempt to return non-borrowed model")
 
         # un-track this model
         del self._ledger[index]
@@ -175,9 +203,13 @@ class ModelLibrary(Sequence):
         # and store it
         self._model_store[index] = model
 
+        # TODO should we allow this to change group_id for the member?
+
     def discard(self, index, model):
+        # TODO it might be worth allowing `discard(model)` by adding
+        # an index of {id(model): index} to the ledger to look up the index
         if index not in self._ledger:
-            raise ValueError("Attempt to discard non-borrowed model")
+            raise BorrowError("Attempt to discard non-borrowed model")
 
         # un-track this model
         del self._ledger[index]
@@ -239,31 +271,30 @@ class ModelLibrary(Sequence):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self._open = False
-        if exc_value:
-            # if there is already an exception, don't worry about checking the ledger
-            # instead allowing the calling code to raise the original error to provide
-            # a more useful feedback without any chained ledger exception about
-            # un-returned models
-            return
+        # if exc_value:
+        #     # if there is already an exception, don't worry about checking the ledger
+        #     # instead allowing the calling code to raise the original error to provide
+        #     # a more useful feedback without any chained ledger exception about
+        #     # un-returned models
+        #     return
         if self._ledger:
-            raise ValueError(f"ModelLibrary has {len(self._ledger)} un-returned models")
+            raise BorrowError(f"ModelLibrary has {len(self._ledger)} un-returned models") from exc_value
 
     def index(self, attribute, copy=False):
         """
         Access a single attribute from all models
         """
-        # TODO do we want a "read-only" API that doesn't worry about re-assigning models?
-        for i in range(len(self)):
-            if i in self._model_store:
-                model = self._model_store[i]
-            else:
-                # FIXME we open a model here, close it?
-                model = self._load_member(i)
-            attr = model[attribute]
-            if copy:
-                yield attr.copy()
-            else:
-                yield attr
+        # TODO we could here implement efficient accessors for
+        # certain attributes (like `meta.wcs` or `meta.wcs_info.s_region`)
+        if copy:
+            copy_func = lambda value: value.copy()
+        else:
+            copy_func = lambda value: value
+        with self:
+            for (i, model) in range(len(self)):
+                attr = model[attribute]
+                self.discard(i, model)
+                yield copy_func(attr)
 
 
 def _attrs_to_group_id(
