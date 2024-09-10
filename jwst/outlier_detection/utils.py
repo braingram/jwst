@@ -4,6 +4,7 @@ The ever-present utils sub-module. A home for all...
 import warnings
 
 import numpy as np
+import zarr
 
 from jwst.lib.pipe_utils import match_nans_and_flags
 from jwst.resample.resample import compute_image_pixel_area
@@ -32,6 +33,53 @@ def create_cube_median(cube_model, maskpt):
     return median
 
 
+def on_disk_median(resampled_models, maskpt, buffer_size=1.0):
+    zarr_array = None
+    median = None
+    window_size = None
+
+    with resampled_models:
+        for (i, resampled) in enumerate(resampled_models):
+            weight_threshold = compute_weight_threshold(resampled.wht, maskpt)
+            data = resampled.data.copy()
+            data[resampled.wht < weight_threshold] = np.nan
+
+            if zarr_array is None:
+                shape = data.shape
+                median = np.full(shape, np.nan, dtype=data.dtype)
+
+                # how many elements can we fit in a buffer
+                n_window_items = max(1, int(buffer_size * _ONE_MB / data.dtype.itemsize) // len(resampled_models))
+                if n_window_items < shape[0]:
+                    window_size = (n_window_items, 1)
+                else:
+                    window_size = (shape[0], min(max(1, n_window_items // shape[0]), shape[1]))
+
+                chunk_shape = (len(resampled_models), window_size[0], window_size[1])
+                zarr_array = zarr.create(
+                    (len(resampled_models), shape[0], shape[1]),
+                    chunks=chunk_shape,
+                    fill_value=np.nan,
+                    write_empty_chunks=False,
+                    store=zarr.storage.TempStore(dir="."),
+                    dtype=data.dtype,
+                )
+            zarr_array[i] = data
+
+            resampled_models.shelve(resampled, modify=False)
+
+    _, i_n, j_n = zarr_array.chunks
+    _, nw0, nw1 = zarr_array.cdata_shape
+    for i in range(nw0):
+        for j in range(nw1):
+            i0 = i * i_n
+            i1 = i0 + i_n
+            j0 = j * j_n
+            j1 = j0 + j_n
+            median[i0:i1, j0:j1] = np.nanmedian(zarr_array.blocks[0, i, j], axis=0)
+    return median
+
+
 def create_median(resampled_models, maskpt, on_disk=True, buffer_size=10.0):
     """Create a median image from the singly resampled images.
 
@@ -55,6 +103,9 @@ def create_median(resampled_models, maskpt, on_disk=True, buffer_size=10.0):
     median_image : ndarray
         The median image.
     """
+    if on_disk:
+        return on_disk_median(resampled_models, maskpt, buffer_size)
+
     # Compute the weight threshold for each input model
     weight_thresholds = []
     with resampled_models:
