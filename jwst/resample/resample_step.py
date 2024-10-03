@@ -115,6 +115,10 @@ class ResampleStep(Step):
             if kwargs.pop("output_wcs", None) is None:
                 output_shape = (None if self.output_shape is None
                                 else self.output_shape[::-1])
+                # BJG this is called outside stcal and is the same
+                # as the call in stcal. If called outside of `if self.single`
+                # there would be no need to call it in stcal removing one call
+                # to iter_model
                 kwargs["output_wcs"], *_ = resampled_wcs_from_models(
                     input_models,
                     pixel_scale_ratio=self.pixel_scale_ratio,
@@ -129,10 +133,23 @@ class ResampleStep(Step):
 
             # Call the resampling routine for each group of images
             for group_id in group_ids:
+                # BJG set_active_group unused
                 input_models.set_active_group(group_id)
                 log.info(f"Resampling images in group {group_id}")
 
                 try:
+                    # BJG this is created then run called then not reused
+                    # (except for the filename use below which looks like
+                    # a bug in ResampleImage). It could be:
+                    # - a function (to avoid leaving a lingering resampler
+                    #   around which has references to output model arrays)
+                    # - run replaced with repeated "add_model" calls to:
+                    #   - remove the need for iter_model
+                    #   - provide an obvious spot for pipeline specific processing
+                    #   - no need for set_active_group
+                    #   - no need for overriding "add_model"
+                    #   - no need for update_output_model_data
+                    #   - no need for update_fits_wcsinfo
                     resampler = resample.ResampleImage(
                         input_models,
                         enable_ctx=False,
@@ -153,6 +170,7 @@ class ResampleStep(Step):
                     log.error(e.msg)
                     return input
 
+                # BJG does model not have a meta.filename?
                 # output file name for the resampled model:
                 while resampler.input_file_names:
                     ref_file_name = resampler.input_file_names.pop()

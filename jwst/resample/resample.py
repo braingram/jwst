@@ -66,6 +66,7 @@ class LibModelAccess(LibModelAccessBase):
         "pointings": "meta.resample.pointings",
         "n_coadds": "meta.resample.n_coadds",
 
+        # BJG unused
         # spectroscopy-specific:
         "instrument_name": "meta.instrument.name",
         "exposure_type": "meta.exposure.type",
@@ -75,6 +76,7 @@ class LibModelAccess(LibModelAccessBase):
         assert set(cls.attributes_path).issuperset(cls.min_supported_attributes)
         return super().__new__(cls)
 
+    # BJG not used in stcal
     @classmethod
     def get_model_attr_value(cls, model, attr_path):
         """ Retrieve a single attribute from the data model. """
@@ -85,6 +87,7 @@ class LibModelAccess(LibModelAccessBase):
             return model.instance
         return model
 
+    # BJG not used in stcal
     @classmethod
     def get_model_attributes(cls, model, attributes=None, quiet=False):
         """ Retrieve all attributes (data and meta) from the data model. """
@@ -128,14 +131,17 @@ class LibModelAccess(LibModelAccessBase):
     def n_groups(self):
         return len(self._mlib.group_indices)
 
+    # BJG unused
     @property
     def group_indices(self):
         return self._mlib.group_indices
 
+    # BJG unused
     @property
     def asn(self):
         return self._mlib.asn
 
+    # BJG unused
     def set_active_group(self, group_id=None):
         self._active_group = group_id
 
