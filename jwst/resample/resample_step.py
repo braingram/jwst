@@ -9,6 +9,7 @@ from stcal.resample import resampled_wcs_from_models, OutputTooLargeError
 from stcal.resample.utils import load_custom_wcs
 
 from . import resample
+from .resample_utils import make_output_wcs
 from ..associations.asn_from_list import asn_from_list
 from ..stpipe import Step
 
@@ -79,7 +80,8 @@ class ResampleStep(Step):
         elif not isinstance(input, ModelLibrary):
             raise RuntimeError(f"Input {repr(input)} is not a 2D image.")
 
-        input_models = resample.LibModelAccess(input)
+        #input_models = resample.LibModelAccess(input)
+        input_models = input
 
         # try to figure output file name.
         # TODO: review whether this is the intended action - not sure this
@@ -108,67 +110,57 @@ class ResampleStep(Step):
         # Setup drizzle-related parameters
         kwargs = self.get_drizpars()
 
+        if kwargs.get("output_wcs", None) is None:
+            # TODO BJG compute output wcs
+            # define output WCS if needed using
+            output_shape = (None if self.output_shape is None
+                            else self.output_shape[::-1])
+            # BJG this is called outside stcal and is the same
+            # as the call in stcal. If called outside of `if self.single`
+            # there would be no need to call it in stcal removing one call
+            # to iter_model
+            kwargs["output_wcs"] = make_output_wcs(
+                input_models,
+                pscale_ratio=self.pixel_scale_ratio,
+                pscale=self.pixel_scale,
+                rotation=self.rotation,
+                shape=output_shape,
+                crpix=self.crpix,
+                crval=self.crval,
+            )
+
         if self.single:
             output_suffix = "outlier_i2d"
 
-            # define output WCS if needed using
-            if kwargs.pop("output_wcs", None) is None:
-                output_shape = (None if self.output_shape is None
-                                else self.output_shape[::-1])
-                # BJG this is called outside stcal and is the same
-                # as the call in stcal. If called outside of `if self.single`
-                # there would be no need to call it in stcal removing one call
-                # to iter_model
-                kwargs["output_wcs"], *_ = resampled_wcs_from_models(
-                    input_models,
-                    pixel_scale_ratio=self.pixel_scale_ratio,
-                    pixel_scale=self.pixel_scale,
-                    output_shape=output_shape,
-                    rotation=self.rotation,
-                    crpix=self.crpix,
-                    crval=self.crval,
-                )
-
-            group_ids = input_models.group_indices
-
             # Call the resampling routine for each group of images
-            for group_id in group_ids:
+            for group_id in input_models.group_indices:
                 # BJG set_active_group unused
-                input_models.set_active_group(group_id)
+                #input_models.set_active_group(group_id)
                 log.info(f"Resampling images in group {group_id}")
 
-                try:
-                    # BJG this is created then run called then not reused
-                    # (except for the filename use below which looks like
-                    # a bug in ResampleImage). It could be:
-                    # - a function (to avoid leaving a lingering resampler
-                    #   around which has references to output model arrays)
-                    # - run replaced with repeated "add_model" calls to:
-                    #   - remove the need for iter_model
-                    #   - provide an obvious spot for pipeline specific processing
-                    #   - no need for set_active_group
-                    #   - no need for overriding "add_model"
-                    #   - no need for update_output_model_data
-                    #   - no need for update_fits_wcsinfo
-                    resampler = resample.ResampleImage(
-                        input_models,
-                        enable_ctx=False,
-                        enable_var=False,
-                        **kwargs,
-                    )
-                    model = resampler.run()
-
-                except OutputTooLargeError as e:
-                    log.error("Not enough available memory for resample.")
-                    log.error(e.msg)
-                    return input
-
-                except Exception as e:
-                    log.error(
-                        "The following exception occured while resampling."
-                    )
-                    log.error(e.msg)
-                    return input
+                # BJG this is created then run called then not reused
+                # (except for the filename use below which looks like
+                # a bug in ResampleImage). It could be:
+                # - a function (to avoid leaving a lingering resampler
+                #   around which has references to output model arrays)
+                # - run replaced with repeated "add_model" calls to:
+                #   - remove the need for iter_model
+                #   - provide an obvious spot for pipeline specific processing
+                #   - no need for set_active_group
+                #   - no need for overriding "add_model"
+                #   - no need for update_output_model_data
+                #   - no need for update_fits_wcsinfo
+                resampler = resample.ResampleImage(
+                    len(input_models),
+                    enable_ctx=False,
+                    enable_var=False,
+                    **kwargs,
+                )
+                for index in group_ids[group_id]:
+                    model = input_models.borrow(index)
+                    resampler.add_model(model)
+                    input_models.shelve(model, index)
+                model = resampler.finalize()
 
                 # BJG does model not have a meta.filename?
                 # output file name for the resampled model:
@@ -216,23 +208,14 @@ class ResampleStep(Step):
                 sep = '' if output_file_name[-1] == '_' else '_'
                 output_file_name = output_file_name + f"{sep}i2d{_OUPUT_EXT}"
 
-            try:
-                resampler = resample.ResampleImage(
-                    input_models,
-                    enable_ctx=True,
-                    enable_var=True,
-                    **kwargs,
-                )
-                model = resampler.run()
-            except OutputTooLargeError as e:
-                log.error("Not enough available memory for resample.")
-                log.error(e.msg)
-                return input
-            except Exception as e:
-                log.error("The following exception occured while resampling.")
-                log.error(e.msg)
-                return input
-
+            resampler = resample.ResampleImage(
+                len(input_models),
+                enable_ctx=True,
+                enable_var=True,
+                **kwargs,
+            )
+            list(input_models.map_function(lambda m, i: resampler.add_model(m)))
+            model = resampler.finalize()
             model.meta.filename = output_file_name
 
             if self.in_memory:

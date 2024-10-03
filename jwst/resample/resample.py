@@ -112,49 +112,51 @@ class LibModelAccess(LibModelAccessBase):
 
         return model_attrib
 
-    def __init__(self, model_library):
-        self._mlib = model_library
-        self.set_active_group(None)
+    # BJG ties library lifetime to this object
+    # def __init__(self, model_library):
+    #     self._mlib = model_library
 
-    def iter_model(self, attributes=None):
-        with self._mlib:
-            for model in self._mlib:
-                model_attrib = self.get_model_attributes(model, attributes)
-                yield model_attrib, model
-                self._mlib.shelve(model)
+    # def iter_model(self, attributes=None):
+    #     with self._mlib:
+    #         for model in self._mlib:
+    #             model_attrib = self.get_model_attributes(model, attributes)
+    #             yield model_attrib, model
+    #             self._mlib.shelve(model)
 
-    @property
-    def n_models(self):
-        return len(self._mlib)
+    # @property
+    # def n_models(self):
+    #     return len(self._mlib)
 
-    @property
-    def n_groups(self):
-        return len(self._mlib.group_indices)
+    # @property
+    # def n_groups(self):
+    #     return len(self._mlib.group_indices)
 
-    # BJG unused
-    @property
-    def group_indices(self):
-        return self._mlib.group_indices
+    # # BJG unused
+    # @property
+    # def group_indices(self):
+    #     return self._mlib.group_indices
 
-    # BJG unused
-    @property
-    def asn(self):
-        return self._mlib.asn
+    # # BJG unused
+    # @property
+    # def asn(self):
+    #     return self._mlib.asn
 
-    # BJG unused
-    def set_active_group(self, group_id=None):
-        self._active_group = group_id
+    # # BJG unused
+    # def set_active_group(self, group_id=None):
+    #     self._active_group = group_id
 
 
 class ResampleImage(Resample):
     dq_flag_name_map = pixel
 
-    def __init__(self, input_models, *args, blendheaders=True,
+    def __init__(self, n_models, *args, blendheaders=True,
                  output_model=None, **kwargs):
         if output_model is None:
+            # BJG this links resampled_model lifetime to this class
             self.resampled_model = datamodels.ImageModel()
             self._update_output_meta_with_first_model = True
         else:
+            # BJG this links output_model lifetime to this class
             self.resampled_model = output_model
             self._update_output_meta_with_first_model = False
             # convert output_model to dictionary:
@@ -178,7 +180,7 @@ class ResampleImage(Resample):
             )
 
         super().__init__(
-            input_models,
+            n_models,
             *args,
             output_model=output_model,
             **kwargs
@@ -187,8 +189,12 @@ class ResampleImage(Resample):
         # initialize blendheaders if needed
         self._blendheaders = blendheaders
 
-    def add_model(self, model_info, image_model):
-        super().add_model(model_info, image_model)
+    def add_model(self, image_model):
+        # TODO BJG reads whole model
+        model_info = LibModelAccess.get_model_attributes(image_model)
+        super().add_model(model_info)
+
+        # BJG doesn't model blender handle this?
         if self._update_output_meta_with_first_model:
             self.resampled_model.update(image_model)
             self._update_output_meta_with_first_model = False
@@ -197,26 +203,26 @@ class ResampleImage(Resample):
         if self._blendheaders:
             self.blender.accumulate(image_model)
 
-    def update_output_model_data(self):
+    def update_output_model_data(self, output_model):
         # update data and meta for the output model:
         # * arrays:
         if self._blendheaders:
             self.blender.finalize_model(self.resampled_model)
 
-        self.resampled_model.data = self.output_model["data"]
-        self.resampled_model.wht = self.output_model["wht"]
+        self.resampled_model.data = output_model["data"]
+        self.resampled_model.wht = output_model["wht"]
 
         if self._enable_ctx:
-            self.resampled_model.con = self.output_model["con"]
+            self.resampled_model.con = output_model["con"]
 
         if self._enable_var:
-            self.resampled_model.var_rnoise = self.output_model["var_rnoise"]
-            self.resampled_model.var_poisson = self.output_model["var_poisson"]
-            self.resampled_model.var_flat = self.output_model["var_flat"]
-            self.resampled_model.err = self.output_model["err"]
+            self.resampled_model.var_rnoise = output_model["var_rnoise"]
+            self.resampled_model.var_poisson = output_model["var_poisson"]
+            self.resampled_model.var_flat = output_model["var_flat"]
+            self.resampled_model.err = output_model["err"]
 
         # * meta:
-        self.resampled_model.meta.wcs = self.output_model["wcs"]
+        self.resampled_model.meta.wcs = output_model["wcs"]
         self.resampled_model.meta.cal_step.resample = 'COMPLETE'
         self.resampled_model.meta.resample.pixel_scale_ratio = self._pixel_scale_ratio
         self.resampled_model.meta.resample.pixfrac = self.pixfrac
@@ -228,35 +234,36 @@ class ResampleImage(Resample):
         else:
             util.update_s_region_spectral(self.resampled_model)
 
-        self.resampled_model.meta.asn.pool_name = self._input_models.asn.get(
-            "pool_name",
-            None
-        )
-        self.resampled_model.meta.asn.table_name = self._input_models.asn.get(
-            "table_name",
-            None
-        )
+        # BJG TODO set these outside this function
+        # self.resampled_model.meta.asn.pool_name = self._input_models.asn.get(
+        #     "pool_name",
+        #     None
+        # )
+        # self.resampled_model.meta.asn.table_name = self._input_models.asn.get(
+        #     "table_name",
+        #     None
+        # )
 
         # Update some basic exposure time values based on output_model
-        self.resampled_model.meta.exposure.exposure_time = self.output_model["exposure_time"]
-        self.resampled_model.meta.exposure.start_time = self.output_model["start_time"]
-        self.resampled_model.meta.exposure.end_time = self.output_model["end_time"]
-        if "measurement_time" in self.output_model:
-            self.resampled_model.meta.exposure.measurement_time = self.output_model["measurement_time"]
+        self.resampled_model.meta.exposure.exposure_time = output_model["exposure_time"]
+        self.resampled_model.meta.exposure.start_time = output_model["start_time"]
+        self.resampled_model.meta.exposure.end_time = output_model["end_time"]
+        if "measurement_time" in output_model:
+            self.resampled_model.meta.exposure.measurement_time = output_model["measurement_time"]
 
         # Update other exposure time keywords:
         # XPOSURE (identical to the total effective exposure time, EFFEXPTM)
-        xposure = self.output_model["exposure_time"]
+        xposure = output_model["exposure_time"]
         self.resampled_model.meta.exposure.effective_exposure_time = xposure
         # DURATION (identical to TELAPSE, elapsed time)
-        self.resampled_model.meta.exposure.duration = self.output_model["duration"]
-        self.resampled_model.meta.exposure.elapsed_exposure_time = self.output_model["duration"]
+        self.resampled_model.meta.exposure.duration = output_model["duration"]
+        self.resampled_model.meta.exposure.elapsed_exposure_time = output_model["duration"]
 
         # TODO: finalize blend headers if needed
 
-    def run(self):
-        super().run()
-        self.update_output_model_data()
+    def finalize(self):
+        output_model = super().finalize()
+        self.update_output_model_data(output_model)
         return self.resampled_model
 
     @staticmethod
