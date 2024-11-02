@@ -104,11 +104,11 @@ def test_save_step_withdir(mk_tmp_dirs):
     assert path.isfile(output_fn_path)
 
 
-def test_save_step_withdir_environment(mk_tmp_dirs):
+def test_save_step_withdir_environment(mk_tmp_dirs, monkeypatch):
     """Save to specified folder"""
     tmp_current_path, tmp_data_path, tmp_config_path = mk_tmp_dirs
 
-    os.environ['TSSWE_OUTPATH'] = tmp_data_path
+    monkeypatch.setenv('TSSWE_OUTPATH', tmp_data_path)
 
     args = [
         'jwst.stpipe.tests.steps.StepWithModel',

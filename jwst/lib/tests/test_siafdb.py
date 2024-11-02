@@ -35,11 +35,11 @@ OLD_PRD_PATH = PYSIAF_PRD_PATH / OLD_PRD / 'SIAFXML' / 'SIAFXML'
     # `source` overrides `prd`
     (SIAFXML_PATH, OLD_PRD, SIAFXML_PATH, does_not_raise()),
 ])
-def test_create(source, prd, xml_path, exception, jail_environ):
+def test_create(source, prd, xml_path, exception, monkeypatch):
     """Test the the right objects are created"""
     source_actual = source
     if source == 'XML_DATA':
-        os.environ['XML_DATA'] = str(XML_DATA_SIAFXML_PATH)
+        monkeypatch.setenv('XML_DATA', str(XML_DATA_SIAFXML_PATH))
         source_actual = None
 
     with exception:

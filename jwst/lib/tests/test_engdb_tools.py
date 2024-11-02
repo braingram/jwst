@@ -56,10 +56,10 @@ def engdb():
     yield engdb_tools.ENGDB_Service()
 
 
-def test_environmental_bad(jail_environ):
+def test_environmental_bad(monkeypach):
     alternate = 'https://google.com/'
     did_except = False
-    os.environ['ENG_BASE_URL'] = alternate
+    monkeypatch.setenv('ENG_BASE_URL', alternate)
     try:
         engdb = engdb_tools.ENGDB_Service()
     except Exception:
