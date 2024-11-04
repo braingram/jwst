@@ -12,7 +12,6 @@ import asdf
 from astropy.io.fits.diff import FITSDiff
 import ci_watson.artifactory_helpers
 from ci_watson.artifactory_helpers import (
-    check_url,
     get_bigdata_root,
     get_bigdata,
     BigdataError,
@@ -28,7 +27,6 @@ from jwst.stpipe import Step
 # overwrite get_bigdata_root
 _BIGDATA_ROOT = get_bigdata_root()
 ci_watson.artifactory_helpers.get_bigdata_root = lambda: _BIGDATA_ROOT
-ci_watson.artifactory_helpers.check_url = lambda url, **kwargs: url.startswith("http")
 ci_watson.artifactory_helpers.CHUNK_SIZE = 10 << 20
 
 # Define location of default Artifactory API key, for Jenkins use only
@@ -165,11 +163,9 @@ class RegtestData:
             root_len = len(root_path) + 1
             path = op.join(root_path, path)
             file_paths = _data_glob_local(path, glob)
-        elif check_url(root):
+        else:
             root_len = len(self.env) + 1
             file_paths = _data_glob_url(self._inputs_root, self.env, path, glob, root=root)
-        else:
-            raise BigdataError('Path cannot be found: {}'.format(path))
 
         # Remove the root from the paths
         file_paths = [
