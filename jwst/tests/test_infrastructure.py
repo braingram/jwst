@@ -5,8 +5,6 @@ import os
 
 import pytest
 
-from ci_watson.artifactory_helpers import get_bigdata_root
-
 from jwst.regtest.regtestdata import (
     _data_glob_local,
     _data_glob_url
@@ -81,7 +79,7 @@ def test_data_glob_url(glob_filter, nfiles, pytestconfig, request):
     env = request.config.getoption('env')
     path = os.path.join(inputs_root, env, 'infrastructure/test_data_glob')
 
-    files = _data_glob_url(path, glob_filter, root=get_bigdata_root())
+    files = _data_glob_url(path, glob_filter, root=os.environ["TEST_BIGDATA"])
     assert len(files) == nfiles
 
 

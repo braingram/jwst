@@ -6,7 +6,6 @@ from pathlib import Path
 
 import getpass
 import pytest
-from ci_watson.artifactory_helpers import UPLOAD_SCHEMA
 from astropy.table import Table
 from numpy.testing import assert_allclose, assert_equal
 from astropy.io.fits import conf
@@ -205,10 +204,15 @@ def generate_upload_schema(pattern, target, recursive=False, schema=None):
         pattern = [pattern]
 
     for p in pattern:
-        temp_schema = copy.deepcopy(UPLOAD_SCHEMA["files"][0])
-        temp_schema.update({"pattern": p, "target": target,
-                            "recursive": recursive})
-        upload_schema["files"].append(temp_schema)
+        upload_schema["files"].append({
+            "pattern": p,
+            "target": target,
+            "props": None,
+            "recursive": recursive,
+            "flat": "true",
+            "regexp": "false",
+            "explode": "false",
+            "excludePatterns": []})
 
     return upload_schema
 
