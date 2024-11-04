@@ -39,29 +39,24 @@ class RegtestData:
     """Defines data paths on Artifactory and data retrieval methods"""
 
     def __init__(self, env="dev", inputs_root="jwst-pipeline",
-                 results_root="jwst-pipeline-results", docopy=True,
-                 input=None, input_remote=None, output=None, truth=None,
-                 truth_remote=None, remote_results_path=None, test_name=None,
-                 traceback=None, okify_op='file_copy', **kwargs):
+                 results_root="jwst-pipeline-results"):
         self.env = env
         self._inputs_root = inputs_root
         self._results_root = results_root
         self._bigdata_root = get_bigdata_root()
 
-        self.docopy = docopy
-
         # Initialize @property attributes
-        self.input = input
-        self.input_remote = input_remote
-        self.output = output
-        self.truth = truth
-        self.truth_remote = truth_remote
+        self.input = None
+        self.input_remote = None
+        self.output = None
+        self.truth = None
+        self.truth_remote = None
 
         # No @properties for the following attributes
-        self.remote_results_path = remote_results_path
-        self.test_name = test_name
-        self.traceback = traceback
-        self.okify_op = okify_op
+        self.remote_results_path = None
+        self.test_name = None
+        self.traceback = None
+        self.okify_op = 'file_copy'
 
         # Initialize non-initialized attributes
         self.asn = None
@@ -141,7 +136,7 @@ class RegtestData:
         return self._bigdata_root
 
     # The methods
-    def get_data(self, path=None, docopy=None):
+    def get_data(self, path=None):
         """Copy data from Artifactory remote resource to the CWD
 
         Updates self.input and self.input_remote upon completion
@@ -150,15 +145,12 @@ class RegtestData:
             path = self.input_remote
         else:
             self.input_remote = path
-        if docopy is None:
-            docopy = self.docopy
-        self.input = get_bigdata(self._inputs_root, self.env, path,
-                                 docopy=docopy)
+        self.input = get_bigdata(self._inputs_root, self.env, path)
         self.input_remote = os.path.join(self._inputs_root, self.env, path)
 
         return self.input
 
-    def data_glob(self, path=None, glob='*', docopy=None):
+    def data_glob(self, path=None, glob='*'):
         """Get a list of files"""
         if path is None:
             path = self.input_remote
@@ -186,7 +178,7 @@ class RegtestData:
         ]
         return file_paths
 
-    def get_truth(self, path=None, docopy=None):
+    def get_truth(self, path=None):
         """Copy truth data from Artifactory remote resource to the CWD/truth
 
         Updates self.truth and self.truth_remote on completion
@@ -195,17 +187,14 @@ class RegtestData:
             path = self.truth_remote
         else:
             self.truth_remote = path
-        if docopy is None:
-            docopy = self.docopy
         os.makedirs('truth', exist_ok=True)
         with pushdir('truth'):
-            self.truth = get_bigdata(self._inputs_root, self.env, path,
-                                     docopy=docopy)
+            self.truth = get_bigdata(self._inputs_root, self.env, path)
             self.truth_remote = os.path.join(self._inputs_root, self.env, path)
 
         return self.truth
 
-    def get_asn(self, path=None, docopy=True, get_members=True):
+    def get_asn(self, path=None, get_members=True):
         """Copy association and association members from Artifactory remote
         resource to the CWD/truth.
 
@@ -216,13 +205,6 @@ class RegtestData:
         path: str
             The remote path
 
-        docopy : bool
-            Switch to control whether or not to copy a file
-            into the test output directory when running the test.
-            If you wish to open the file directly from remote
-            location or just to set path to source, set this to `False`.
-            Default: `True`
-
         get_members: bool
             If an association is the input, retrieve the members.
             Otherwise, do not.
@@ -231,12 +213,9 @@ class RegtestData:
             path = self.input_remote
         else:
             self.input_remote = path
-        if docopy is None:
-            docopy = self.docopy
 
         # Get the association JSON file
-        self.input = get_bigdata(self._inputs_root, self.env, path,
-                                 docopy=docopy)
+        self.input = get_bigdata(self._inputs_root, self.env, path)
         with open(self.input) as fp:
             asn = load_asn(fp)
             self.asn = asn
@@ -248,8 +227,7 @@ class RegtestData:
                     fullpath = os.path.join(
                         os.path.dirname(self.input_remote),
                         member['expname'])
-                    get_bigdata(self._inputs_root, self.env, fullpath,
-                                docopy=self.docopy)
+                    get_bigdata(self._inputs_root, self.env, fullpath)
 
     def to_asdf(self, path):
         tree = eval(str(self))
