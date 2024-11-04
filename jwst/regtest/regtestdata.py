@@ -28,7 +28,7 @@ class RegtestData:
     """Defines data paths on Artifactory and data retrieval methods"""
 
     def __init__(self, env="dev", inputs_root="jwst-pipeline",
-                 results_root="jwst-pipeline-results"):
+                 results_root="jwst-pipeline-results", okify_op="file_copy"):
         self.env = env
         self._inputs_root = inputs_root
         self._results_root = results_root
@@ -47,7 +47,7 @@ class RegtestData:
         self.remote_results_path = None
         self.test_name = None
         self.traceback = None
-        self.okify_op = 'file_copy'
+        self.okify_op = okify_op
 
         # Initialize non-initialized attributes
         self.asn = None
