@@ -10,9 +10,6 @@ import sys
 
 import asdf
 from astropy.io.fits.diff import FITSDiff
-from ci_watson.artifactory_helpers import (
-    get_bigdata,
-)
 
 from jwst.associations import AssociationNotValidError, load_asn
 from jwst.lib.file_utils import pushdir
@@ -21,7 +18,6 @@ from jwst.pipeline.collect_pipeline_cfgs import collect_pipeline_cfgs
 from jwst.stpipe import Step
 
 
-# overwrite get_bigdata_root
 _BIGDATA_ROOT = os.environ.get("TEST_BIGDATA")
 
 # Define location of default Artifactory API key, for Jenkins use only
@@ -130,6 +126,29 @@ class RegtestData:
     def bigdata_root(self):
         return self._bigdata_root
 
+    @property
+    def _session(self):
+        if not hasattr(self, "_requests_session"):
+            self._requests_session = requests.Session()
+        return self._requests_session
+
+    def _get_data(self, path):
+        src = os.path.join(self._bigdata_root, self._inputs_root, self.env, path)
+        basename = os.path.basename(src)
+        dst = os.path.abspath(os.path.join(os.curdir, basename))
+
+        if os.path.exists(src):
+            # local file
+            shutil.copy2(src, dst)
+
+        else:
+            with self._session.get(src, stream=True) as response:
+                if response.status_code != 200:
+                    raise ValueError(f"{src} download failed with: {response}")
+                with open(dst, 'wb') as out_file:
+                    shutil.copyfileobj(response.raw, out_file)
+        return dst
+
     # The methods
     def get_data(self, path=None):
         """Copy data from Artifactory remote resource to the CWD
@@ -140,7 +159,7 @@ class RegtestData:
             path = self.input_remote
         else:
             self.input_remote = path
-        self.input = get_bigdata(self._inputs_root, self.env, path)
+        self.input = self._get_data(path)
         self.input_remote = os.path.join(self._inputs_root, self.env, path)
 
         return self.input
@@ -182,7 +201,7 @@ class RegtestData:
             self.truth_remote = path
         os.makedirs('truth', exist_ok=True)
         with pushdir('truth'):
-            self.truth = get_bigdata(self._inputs_root, self.env, path)
+            self.truth = self._get_data(path)
             self.truth_remote = os.path.join(self._inputs_root, self.env, path)
 
         return self.truth
@@ -208,7 +227,7 @@ class RegtestData:
             self.input_remote = path
 
         # Get the association JSON file
-        self.input = get_bigdata(self._inputs_root, self.env, path)
+        self.input = self._get_data(path)
         with open(self.input) as fp:
             asn = load_asn(fp)
             self.asn = asn
@@ -220,7 +239,7 @@ class RegtestData:
                     fullpath = os.path.join(
                         os.path.dirname(self.input_remote),
                         member['expname'])
-                    get_bigdata(self._inputs_root, self.env, fullpath)
+                    self._get_data(fullpath)
 
     def to_asdf(self, path):
         tree = eval(str(self))
