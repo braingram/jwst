@@ -10,11 +10,8 @@ import sys
 
 import asdf
 from astropy.io.fits.diff import FITSDiff
-import ci_watson.artifactory_helpers
 from ci_watson.artifactory_helpers import (
-    get_bigdata_root,
     get_bigdata,
-    BigdataError,
 )
 
 from jwst.associations import AssociationNotValidError, load_asn
@@ -25,9 +22,7 @@ from jwst.stpipe import Step
 
 
 # overwrite get_bigdata_root
-_BIGDATA_ROOT = get_bigdata_root()
-ci_watson.artifactory_helpers.get_bigdata_root = lambda: _BIGDATA_ROOT
-ci_watson.artifactory_helpers.CHUNK_SIZE = 10 << 20
+_BIGDATA_ROOT = os.environ.get("TEST_BIGDATA")
 
 # Define location of default Artifactory API key, for Jenkins use only
 ARTIFACTORY_API_KEY_FILE = '/eng/ssb2/keys/svc_rodata.key'
@@ -41,7 +36,9 @@ class RegtestData:
         self.env = env
         self._inputs_root = inputs_root
         self._results_root = results_root
-        self._bigdata_root = get_bigdata_root()
+        self._bigdata_root = _BIGDATA_ROOT
+        if self._bigdata_root is None:
+            raise ValueError("TEST_BIGDATA is undefined")
 
         # Initialize @property attributes
         self.input = None
@@ -438,7 +435,6 @@ def _data_glob_url(*url_parts, root=None):
 
     root: str
         The root server path to the Artifactory server.
-        Normally retrieved from `get_bigdata_root`.
 
     Returns
     -------
