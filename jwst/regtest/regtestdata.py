@@ -28,6 +28,8 @@ from jwst.stpipe import Step
 # overwrite get_bigdata_root
 _BIGDATA_ROOT = get_bigdata_root()
 ci_watson.artifactory_helpers.get_bigdata_root = lambda: _BIGDATA_ROOT
+ci_watson.artifactory_helpers.check_url = lambda url, **kwargs: url.startswith("http")
+ci_watson.artifactory_helpers.CHUNK_SIZE = 10 << 20
 
 # Define location of default Artifactory API key, for Jenkins use only
 ARTIFACTORY_API_KEY_FILE = '/eng/ssb2/keys/svc_rodata.key'
