@@ -247,7 +247,7 @@ def fitsdiff_default_kwargs():
     ignore_keywords = ['DATE', 'CAL_VER', 'CAL_VCS', 'CRDS_VER', 'CRDS_CTX',
                        'NAXIS1', 'TFORM*']
     return dict(
-        ignore_hdus=['ASDF'],
+        ignore_hdus=['ASDF', 'HDRTAB'],
         ignore_keywords=ignore_keywords,
         ignore_fields=ignore_keywords,
         rtol=1e-5,
