@@ -257,7 +257,7 @@ def is_moving_target(datamodel):
         `True` if it is.
     """
     if (
-        hasattr(datamodel.meta.target, "type")
+        datamodel.meta.target.hasattr("type")
         and datamodel.meta.target.type is not None
         and datamodel.meta.target.type.lower() == "moving"
     ):
