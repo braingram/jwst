@@ -97,7 +97,8 @@ class JwstStep(Step):
 
             if len(reference_files_used) > 0:
                 for ref_name, filename in reference_files_used:
-                    getattr(result.meta.ref_file, ref_name).name = filename
+                    if result.meta.ref_file.hasattr(ref_name):
+                        getattr(result.meta.ref_file, ref_name).name = filename
                 result.meta.ref_file.crds.sw_version = crds_client.get_svn_version()
                 result.meta.ref_file.crds.context_used = crds_client.get_context_used(
                     result.crds_observatory
@@ -106,7 +107,7 @@ class JwstStep(Step):
                     log.info(f"Results used CRDS context: {result.meta.ref_file.crds.context_used}")
 
             if self.class_alias:
-                if "cal_logs" not in result:
+                if not result.hasattr("cal_logs"):
                     result.cal_logs = {}
                 setattr(result.cal_logs, self.class_alias, self._log_records)
 
@@ -191,7 +192,7 @@ class JwstPipeline(Pipeline, JwstStep):
             )
 
             if self.class_alias:
-                if "cal_logs" not in result:
+                if not result.hasattr("cal_logs"):
                     result.cal_logs = {}
 
                 # remove the step logs as they're captured by the pipeline log
