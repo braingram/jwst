@@ -39,7 +39,7 @@ def nrs_extract2d(input_model, slit_names=None, source_ids=None):
     exp_type = input_model.meta.exposure.type.upper()
 
     if (
-        hasattr(input_model.meta.cal_step, "assign_wcs")
+        input_model.meta.cal_step.hasattr("assign_wcs")
         and input_model.meta.cal_step.assign_wcs == "SKIPPED"
     ):
         log.info("assign_wcs was skipped")
@@ -47,7 +47,7 @@ def nrs_extract2d(input_model, slit_names=None, source_ids=None):
         input_model.meta.cal_step.extract_2d = "SKIPPED"
         return input_model
 
-    if not (hasattr(input_model.meta, "wcs") and input_model.meta.wcs is not None):
+    if not (input_model.meta.hasattr("wcs") and input_model.meta.wcs is not None):
         raise AttributeError(
             "Input model does not have a WCS object; assign_wcs should be run before extract_2d."
         )
@@ -318,7 +318,7 @@ def extract_slit(input_model, slit):
         ext_dq = input_model.dq[slit_slice].copy()
         ext_var_rnoise = input_model.var_rnoise[slit_slice].copy()
         ext_var_poisson = input_model.var_poisson[slit_slice].copy()
-        if pipe_utils.is_tso(input_model) and hasattr(input_model, "int_times"):
+        if pipe_utils.is_tso(input_model) and input_model.hasattr("int_times"):
             log.debug("TSO data, so copying the INT_TIMES table.")
             int_times = input_model.int_times.copy()
         else:
@@ -373,7 +373,7 @@ def get_source_xpos(slit):
     xpos : float
         X coordinate of the source as a fraction of the slit size.
     """
-    if not hasattr(slit.meta, "dither"):
+    if not slit.meta.hasattr("dither"):
         raise DitherMetadataError(
             "meta.dither is not populated for the primary slit; "
             "Failed to estimate source position in slit."
