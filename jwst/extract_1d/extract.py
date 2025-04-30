@@ -486,7 +486,7 @@ def populate_time_keywords(input_model, output_model):
     nints = input_model.meta.exposure.nints
     int_start = input_model.meta.exposure.integration_start
 
-    if hasattr(input_model, "data"):
+    if input_model.hasattr("data"):
         shape = input_model.data.shape
 
         if len(shape) == 2:
@@ -536,7 +536,7 @@ def populate_time_keywords(input_model, output_model):
     else:
         num_integrations = 1
 
-    if hasattr(input_model, "int_times") and input_model.int_times is not None:
+    if input_model.hasattr("int_times") and input_model.int_times is not None:
         nrows = len(input_model.int_times)
     else:
         nrows = 0
@@ -730,7 +730,7 @@ def copy_keyword_info(slit, slitname, spec):
         "shutter_state",
     ]
     for key in copy_attributes:
-        if hasattr(slit, key):
+        if slit.hasattr(key):
             setattr(spec, key, getattr(slit, key))
 
     # Copy over some attributes only if they are present and not None
@@ -1869,7 +1869,7 @@ def create_extraction(
         copy_keyword_info(data_model, slitname, spec)
 
         if apcorr is not None:
-            if hasattr(apcorr, "tabulated_correction"):
+            if apcorr.hasattr("tabulated_correction"):
                 if apcorr.tabulated_correction is not None:
                     apcorr_available = True
 
@@ -2046,7 +2046,7 @@ def run_extract1d(
 
     # Set up the output model
     output_model = datamodels.MultiSpecModel()
-    if hasattr(meta_source, "int_times"):
+    if meta_source.hasattr("int_times"):
         output_model.int_times = meta_source.int_times.copy()
     output_model.update(meta_source, only="PRIMARY")
 
@@ -2137,18 +2137,18 @@ def run_extract1d(
         slitname = exp_type
         if isinstance(input_model, datamodels.ImageModel):
             # Get the slit name from the input model
-            if hasattr(input_model, "name") and input_model.name is not None:
+            if input_model.hasattr("name") and input_model.name is not None:
                 slitname = input_model.name
 
         elif isinstance(input_model, (datamodels.CubeModel, datamodels.SlitModel)):
             # For NRS_BRIGHTOBJ, the slit name comes from the slit model info
-            if exp_type == "NRS_BRIGHTOBJ" and hasattr(input_model, "name"):
+            if exp_type == "NRS_BRIGHTOBJ" and input_model.hasattr("name"):
                 slitname = input_model.name
 
             # For NRS_FIXEDSLIT, the slit name comes from the FXD_SLIT keyword
             # in the model meta if not present in the input model
             if exp_type == "NRS_FIXEDSLIT":
-                if hasattr(input_model, "name") and input_model.name is not None:
+                if input_model.hasattr("name") and input_model.name is not None:
                     slitname = input_model.name
                 else:
                     slitname = input_model.meta.instrument.fixed_slit
@@ -2195,7 +2195,7 @@ def run_extract1d(
         populate_time_keywords(input_model, output_model)
     else:
         log.debug("Not copying from the INT_TIMES table because this is not a TSO exposure.")
-        if hasattr(output_model, "int_times"):
+        if output_model.hasattr("int_times"):
             del output_model.int_times
 
     output_model.meta.wcs = None  # See output_model.spec[i].meta.wcs instead.
