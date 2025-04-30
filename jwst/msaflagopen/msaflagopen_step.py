@@ -80,7 +80,7 @@ def create_reference_filename_dictionary(input_model):
 
     # Convert from crds protocol to absolute filenames
     for key in ref_files.keys():
-        if ref_files[key].startswith("crds://"):
+        if ref_files[key] is not None and ref_files[key].startswith("crds://"):
             ref_files[key] = reference_uri_to_cache_path(
                 ref_files[key], input_model.crds_observatory
             )
