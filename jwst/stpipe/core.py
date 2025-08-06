@@ -4,7 +4,6 @@ import logging
 from functools import wraps
 from pathlib import Path
 
-from stdatamodels.jwst import datamodels
 from stdatamodels.jwst.datamodels import JwstDataModel, read_metadata
 from stpipe import Pipeline, Step, crds_client
 
@@ -26,10 +25,6 @@ class JwstStep(Step):
     """  # noqa: E501
 
     _log_records_formatter = _LOG_FORMATTER
-
-    @classmethod
-    def _datamodels_open(cls, init, **kwargs):
-        return datamodels.open(init, **kwargs)
 
     @classmethod
     def _get_crds_parameters(cls, dataset):

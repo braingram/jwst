@@ -206,7 +206,7 @@ class Spec2Pipeline(Pipeline):
         science_member = science_member[0]
 
         self.log.info("Working on input %s ...", science_member)
-        with self.open_model(science_member) as science:
+        with datamodels.open(science_member) as science:
             exp_type = science.meta.exposure.type
             if isinstance(science, datamodels.CubeModel):
                 multi_int = True
