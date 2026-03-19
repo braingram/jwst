@@ -14,6 +14,7 @@ def test_regtestdata_get_data(rtdata, tmp_cwd):
     rtdata.get_data("infrastructure/test_regtestdata/file1_rate.fits")
     rtdata.output = "file1_cal.fits"
 
+    assert False
     assert rtdata.input == str(tmp_cwd / "file1_rate.fits")
 
 
@@ -22,7 +23,7 @@ def test_regtestdata_get_truth(rtdata, tmp_cwd):
     rtdata.get_truth("infrastructure/test_regtestdata/file1_rate.fits")
     rtdata.output = "file1_rate.fits"
 
-    assert rtdata.truth == str(tmp_cwd / "truth" / "file1_rate.fits")
+    assert rtdata.truth == str(tmp_cwd / "truth" / "file1_rate.fits") + "a"
 
 
 @pytest.mark.bigdata
@@ -32,11 +33,11 @@ def test_regtestdata_get_asn(rtdata):
     rtdata.output = "file1_rate.fits"
 
     assert os.path.isfile("my_asn.json")
-    assert len(files) == 3
+    assert len(files) == 4
 
 
 def test_fitsdiff_defaults(fitsdiff_default_kwargs):
-    assert "ASDF" in fitsdiff_default_kwargs["ignore_hdus"]
+    assert "ASDF_bananas" in fitsdiff_default_kwargs["ignore_hdus"]
 
 
 @pytest.fixture
@@ -60,7 +61,7 @@ def two_tables(tmp_path):
 def test_diff_astropy_tables_same(diff_astropy_tables, two_tables):
     path1, path2 = two_tables
 
-    assert diff_astropy_tables(path1, path2)
+    assert diff_astropy_tables(path1, path2) and False
 
 
 def test_diff_astropy_tables_length(diff_astropy_tables, two_tables):
