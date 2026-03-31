@@ -3,18 +3,17 @@
 import inspect
 import logging
 import os
+import threading
+import time
 from pathlib import Path
 
+import psutil
 import pytest
 from astropy.utils.data import get_pkg_data_filename
 
 from jwst.associations import AssociationPool, AssociationRegistry
 from jwst.tests.helpers import LogWatcher
 
-
-import psutil
-import time
-import threading
 
 class MemoryThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -40,7 +39,7 @@ def pytest_sessionfinish(session, exitstatus):
     _memory_thread.join()
 
 
-def _usage_to_linegraph(usage, width=80, height=40):
+def _usage_to_linegraph(usage, width=80, height=10):
     i_per_w = max(len(usage) // width, 1)
     xy = []
     x = 0
@@ -55,6 +54,7 @@ def _usage_to_linegraph(usage, width=80, height=40):
     for y in range(height)[::-1]:
         chars = [" "] * width
         for x in ys.get(y, []):
+            x = min(x, width - 1)
             chars[x] = "+"
         lines.append("".join(chars))
     return "\n".join(lines) + "\n"
