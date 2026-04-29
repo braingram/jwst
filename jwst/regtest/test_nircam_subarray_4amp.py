@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 """
@@ -41,5 +41,4 @@ def test_nircam_detector1_subarray(run_pipeline, fitsdiff_default_kwargs, output
     rtdata.output = output
     rtdata.get_truth(os.path.join("truth/test_nircam_subarray_4amp", output))
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

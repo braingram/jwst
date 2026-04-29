@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -61,8 +61,7 @@ def test_miri_lrs_nod_bg(run_pipeline_with_master_bg, fitsdiff_default_kwargs, n
     # Compare the results
     # Ignore the custom extract1d file because it contains a full path.
     fitsdiff_default_kwargs["ignore_keywords"].append("R_EXTR1D")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -79,8 +78,7 @@ def test_miri_lrs_nod_masterbg1d(run_pipeline_with_master_bg, fitsdiff_default_k
     # Compare the results
     # Ignore the custom extract1d file because it contains a full path.
     fitsdiff_default_kwargs["ignore_keywords"].append("R_EXTR1D")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -97,5 +95,4 @@ def test_miri_lrs_nod_bg_spec3(run_pipeline_with_master_bg, fitsdiff_default_kwa
     rtdata.get_truth(os.path.join("truth/test_miri_lrs_nod_masterbg", output_file))
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

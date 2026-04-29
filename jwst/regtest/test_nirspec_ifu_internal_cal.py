@@ -2,7 +2,7 @@
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -25,5 +25,4 @@ def test_cube_build_nirspec_internal_cal(rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_nirspec_ifu_internal/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

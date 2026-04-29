@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -56,5 +56,4 @@ def test_persistence_step(run_persistence_step, fitsdiff_default_kwargs):
     # Ignore the custom trap density file because it contains a full path.
     fitsdiff_default_kwargs["ignore_keywords"].append("R_TRPDEN")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

@@ -3,7 +3,7 @@
 import pytest
 
 from jwst.regtest import regtestdata as rt
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 
 # Define artifactory source and truth
 INPUT_PATH = "nirspec/ifu"
@@ -97,8 +97,7 @@ def test_spec2_nsclean(run_spec2_nsclean, fitsdiff_default_kwargs, suffix):
     rtdata.get_truth(f"{TRUTH_PATH}/{output}")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.fixture

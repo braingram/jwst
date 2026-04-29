@@ -2,7 +2,7 @@
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -20,8 +20,7 @@ def test_cube_build_nirspec_prism_linear(rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_nirspec_cubebuild_nonlinear/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -44,8 +43,7 @@ def test_cube_build_nirspec_prism_nonlinear(rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_nirspec_cubebuild_nonlinear/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -68,8 +66,7 @@ def test_cube_build_nirspec_medium_nonlinear(rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_nirspec_cubebuild_nonlinear/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -92,5 +89,4 @@ def test_cube_build_nirspec_high_nonlinear(rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_nirspec_cubebuild_nonlinear/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

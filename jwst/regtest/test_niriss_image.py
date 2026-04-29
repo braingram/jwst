@@ -6,7 +6,7 @@ charge_migration, are saved for comparisons with truth files.
 import pytest
 
 from jwst import datamodels
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 from jwst.tweakreg import TweakRegStep
 
@@ -326,5 +326,4 @@ def _assert_is_same(rtdata_module, fitsdiff_default_kwargs, suffix, truth_dir):
     # architectures
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

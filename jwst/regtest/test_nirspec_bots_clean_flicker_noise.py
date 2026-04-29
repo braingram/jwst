@@ -2,7 +2,7 @@
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -53,5 +53,4 @@ def test_nirspec_bots_detector1_with_clean_flicker_noise(
     rtdata.output = output_filename
     rtdata.get_truth(f"truth/test_nirspec_bots_clean_flicker_noise/{output_filename}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

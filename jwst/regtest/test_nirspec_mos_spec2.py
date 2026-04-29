@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -107,8 +107,7 @@ def test_nirspec_mos_spec2(run_pipeline, fitsdiff_default_kwargs, suffix):
     rtdata.get_truth("truth/test_nirspec_mos_spec2/" + output)
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize("suffix", ["clean_flicker_noise", "cal", "s2d", "x1d"])
@@ -124,5 +123,4 @@ def test_nirspec_mos_spec2_nsclean(run_pipeline_nsclean, fitsdiff_default_kwargs
     rtdata.get_truth("truth/test_nirspec_mos_spec2/" + output)
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

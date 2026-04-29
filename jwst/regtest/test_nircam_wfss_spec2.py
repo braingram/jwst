@@ -1,7 +1,7 @@
 import pytest
 import stdatamodels.jwst.datamodels as dm
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -59,8 +59,7 @@ def test_nircam_wfss_spec2(run_pipeline, fitsdiff_default_kwargs, suffix):
     rtdata.get_truth("truth/test_nircam_wfss_spec2/" + output)
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.fixture

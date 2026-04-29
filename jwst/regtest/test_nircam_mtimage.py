@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -16,5 +16,4 @@ def test_nircam_image_moving_target_i2d(rtdata, fitsdiff_default_kwargs, in_memo
 
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 2e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

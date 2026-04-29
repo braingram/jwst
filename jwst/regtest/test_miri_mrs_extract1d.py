@@ -2,7 +2,7 @@
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -25,8 +25,7 @@ def test_miri_mrs_extract1d_nominal(rtdata, fitsdiff_default_kwargs):
     )
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -52,8 +51,7 @@ def test_miri_mrs_extract1d_center(rtdata, fitsdiff_default_kwargs):
     )
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -79,8 +77,7 @@ def test_miri_mrs_extract1d_radius(rtdata, fitsdiff_default_kwargs):
     )
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -102,5 +99,4 @@ def test_miri_mrs_extract1d_extended(rtdata, fitsdiff_default_kwargs):
     )
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

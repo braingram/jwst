@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -34,5 +34,4 @@ def test_nircam_wfss_spec3(run_nircam_wfss_spec3, rtdata_module, suffix, fitsdif
 
     # Compare the results
     fitsdiff_default_kwargs["atol"] = 1e-5
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

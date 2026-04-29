@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -58,8 +58,7 @@ def test_miri_image_tso_exposure_data(run_pipelines, fitsdiff_default_kwargs, se
 
     rtdata.get_truth("truth/test_miri_image_tso/" + output)
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_miri_image_tso_stage3_phot(run_pipelines, diff_astropy_tables):

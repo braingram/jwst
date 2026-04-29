@@ -1,7 +1,7 @@
 import pytest
 
 from jwst.lib.set_telescope_pointing import add_wcs
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -82,8 +82,7 @@ def test_nircam_tsgrism_stage2_offsetSR(run_pipeline_offsetSR, fitsdiff_default_
     rtdata.output = rtdata.input.replace("rate", "x1d")
     rtdata.get_truth("truth/test_nircam_tsgrism_stages/" + rtdata.output.split("/")[-1])
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -98,8 +97,7 @@ def test_nircam_tsgrism_stage2(run_spec2_pipeline, fitsdiff_default_kwargs, suff
 
     rtdata.get_truth("truth/test_nircam_tsgrism_stages/" + output)
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_nircam_tsgrism_stage3_x1dints(run_tso3_pipeline, fitsdiff_default_kwargs):
@@ -110,8 +108,7 @@ def test_nircam_tsgrism_stage3_x1dints(run_tso3_pipeline, fitsdiff_default_kwarg
         "truth/test_nircam_tsgrism_stages/jw01366-o002_t001_nircam_f322w2-grismr-subgrism256_x1dints.fits"
     )
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_nircam_tsgrism_stage3_whtlt(run_tso3_pipeline, diff_astropy_tables):
@@ -141,5 +138,4 @@ def test_nircam_setpointing_tsgrism(rtdata, fitsdiff_default_kwargs):
     )
 
     fitsdiff_default_kwargs["rtol"] = 1e-6
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

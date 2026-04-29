@@ -6,7 +6,7 @@ from jwst.barshadow import BarShadowStep
 from jwst.flatfield import FlatFieldStep
 from jwst.pathloss import PathLossStep
 from jwst.photom import PhotomStep
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 
 
 @pytest.mark.bigdata
@@ -25,8 +25,7 @@ def test_flat_field_step_user_supplied_flat(rtdata, fitsdiff_default_kwargs):
     data_flat_fielded.save(rtdata.output)
 
     rtdata.get_truth(f"truth/test_nirspec_mos_spec2/{output_file}")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata

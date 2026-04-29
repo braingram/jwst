@@ -2,7 +2,7 @@
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Define artifactory source and truth file paths
@@ -46,5 +46,4 @@ def test_miri_mrs_straylight_clean_showers(run_straylight, fitsdiff_default_kwar
     rtdata.get_truth(f"{TRUTH_PATH}/{output}")
 
     # Compare the results for straylight output with clean_showers turned on.
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

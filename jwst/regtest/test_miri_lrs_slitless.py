@@ -5,7 +5,7 @@ from gwcs.wcstools import grid_from_bounding_box
 from numpy.testing import assert_allclose
 from stdatamodels.jwst import datamodels
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 DATASET1_ID = "jw01536028001_03103_00001-seg001_mirimage"
@@ -143,8 +143,7 @@ def test_miri_lrs_slitless_tso1(
 
     rtdata.get_truth(f"truth/test_miri_lrs_slitless_tso1/{output_filename}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -165,8 +164,7 @@ def test_miri_lrs_slitless_detector1(
 
     rtdata.get_truth(f"truth/test_miri_lrs_slitless_detector1/{output_filename}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize("step_suffix", ["emicorr", "rate", "rateints"])
@@ -180,8 +178,7 @@ def test_miri_lrs_slitless_detector1_emicorr_joint(
 
     rtdata.get_truth(f"truth/test_miri_lrs_slitless_detector1_emicorr_joint/{output_filename}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -197,8 +194,7 @@ def test_miri_lrs_slitless_tso_spec2(
     rtdata.output = output_filename
     rtdata.get_truth(f"truth/test_miri_lrs_slitless_tso_spec2/{output_filename}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize("step_suffix", ["outlier_detection", "crfints"])
@@ -215,8 +211,7 @@ def test_miri_lrs_slitless_tso3(
     rtdata.output = output_filename
     rtdata.get_truth(f"truth/test_miri_lrs_slitless_tso3/{output_filename}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_miri_lrs_slitless_tso3_x1dints(run_tso3_pipeline, rtdata_module, fitsdiff_default_kwargs):
@@ -227,8 +222,7 @@ def test_miri_lrs_slitless_tso3_x1dints(run_tso3_pipeline, rtdata_module, fitsdi
     rtdata.output = output_filename
     rtdata.get_truth(f"truth/test_miri_lrs_slitless_tso3/{output_filename}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_miri_lrs_slitless_tso3_whtlt(run_tso3_pipeline, rtdata_module, diff_astropy_tables):
@@ -295,5 +289,4 @@ def test_miri_lrs_slitless_spec2_targ_centroid(
     rtdata.output = output_filename
     rtdata.get_truth(f"truth/test_miri_lrs_slitless_tso_spec2/{output_filename}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

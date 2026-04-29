@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -22,8 +22,7 @@ def test_fgs_image3(run_fgs_image3, rtdata_module, fitsdiff_default_kwargs, suff
     rtdata.output = output
     rtdata.get_truth(f"truth/test_fgs_image3/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata

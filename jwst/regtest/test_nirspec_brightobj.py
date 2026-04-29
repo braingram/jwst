@@ -5,7 +5,7 @@ import pytest
 import stdatamodels.jwst.datamodels as dm
 
 from jwst.flatfield import FlatFieldStep
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -138,8 +138,7 @@ def test_nirspec_brightobj_spec2(run_tso_spec2_pipeline, fitsdiff_default_kwargs
     rtdata.get_truth(os.path.join("truth/test_nirspec_brightobj_spec2", output))
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_tso3_x1dints(run_tso3_pipeline, fitsdiff_default_kwargs):
@@ -149,8 +148,7 @@ def test_tso3_x1dints(run_tso3_pipeline, fitsdiff_default_kwargs):
         "truth/test_nirspec_brightobj_tso3/jw01118005001_04101_00001-first20_x1dints.fits"
     )
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_tso3_whtlt(run_tso3_pipeline, diff_astropy_tables):
@@ -178,8 +176,7 @@ def test_flat_field_step_user_supplied_flat(rtdata, fitsdiff_default_kwargs):
     data_flat_fielded.save(rtdata.output)
 
     rtdata.get_truth(f"truth/test_nirspec_brightobj_spec2/{output_file}")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_ff_inv(rtdata, fitsdiff_default_kwargs):
@@ -212,5 +209,4 @@ def test_nirspec_brightobj_pixrep(run_tso_spec2_pixrep, fitsdiff_default_kwargs,
     rtdata.get_truth(os.path.join("truth/test_nirspec_brightobj_spec2", output))
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

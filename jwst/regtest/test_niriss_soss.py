@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from stdatamodels.jwst.datamodels import SossWaveGridModel
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -96,8 +96,7 @@ def test_niriss_soss_stage2(rtdata_module, run_tso_spec2, fitsdiff_default_kwarg
     rtdata.get_truth(f"truth/test_niriss_soss_stages/{output}")
 
     # Ignore the custom bkg reference file because it contains a full path.
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_niriss_soss_stage3_crfints(rtdata_module, run_tso_spec3, fitsdiff_default_kwargs):
@@ -111,8 +110,7 @@ def test_niriss_soss_stage3_crfints(rtdata_module, run_tso_spec3, fitsdiff_defau
 
     # Ignore the custom bkg reference file because it contains a full path.
     fitsdiff_default_kwargs["ignore_keywords"].append("R_BKG")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_niriss_soss_stage3_x1dints(run_tso_spec3, rtdata_module, fitsdiff_default_kwargs):
@@ -125,8 +123,7 @@ def test_niriss_soss_stage3_x1dints(run_tso_spec3, rtdata_module, fitsdiff_defau
 
     # Ignore the custom bkg reference file because it contains a full path.
     fitsdiff_default_kwargs["ignore_keywords"].append("R_BKG")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_niriss_soss_stage3_whtlt(run_tso_spec3, rtdata_module, diff_astropy_tables):
@@ -155,8 +152,7 @@ def test_niriss_soss_extras(rtdata_module, run_atoca_extras, fitsdiff_default_kw
         # that can't be reasonably compared. Just check for existence.
         assert pathlib.Path(rtdata.output).exists()
     else:
-        diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-        assert diff.identical, diff.report()
+        assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.fixture(scope="module")
@@ -185,8 +181,7 @@ def test_extract1d_null_order2(rtdata_module, run_extract1d_null_order2, fitsdif
 
     rtdata.get_truth(f"truth/test_niriss_soss_stages/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.fixture(scope="module")
@@ -230,5 +225,4 @@ def test_spec2_substrip96(rtdata_module, run_spec2_substrip96, fitsdiff_default_
 
     rtdata.get_truth(f"truth/test_niriss_soss_stages/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

@@ -3,7 +3,7 @@ import pytest
 from gwcs import wcstools
 from stdatamodels.jwst import datamodels
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -46,8 +46,7 @@ def test_nirspec_fs_spec3_moving_target(
         fitsdiff_default_kwargs["atol"] = 2e-4
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
     # Check output wavelength array against its own wcs
     if suffix == "s2d":

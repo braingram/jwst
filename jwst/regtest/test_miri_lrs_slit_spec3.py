@@ -7,7 +7,7 @@ import pytest
 from gwcs import wcstools
 
 from jwst import datamodels
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -100,8 +100,7 @@ def test_miri_lrs_slit_spec3(run_pipeline, rtdata_module, fitsdiff_default_kwarg
     rtdata.get_truth(f"truth/test_miri_lrs_slit_spec3/{output}")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
     if output == "s2d":
         # Compare the calculated wavelengths

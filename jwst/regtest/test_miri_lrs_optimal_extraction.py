@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -71,8 +71,7 @@ def test_miri_lrs_slit_spec2_optimal(
     rtdata.get_truth(f"truth/test_miri_lrs_optimal_extraction/{output}")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -102,5 +101,4 @@ def test_miri_lrs_slit_spec3_optimal(
     rtdata.get_truth(f"truth/test_miri_lrs_optimal_extraction/{output}")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

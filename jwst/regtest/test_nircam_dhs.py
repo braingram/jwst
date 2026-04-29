@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -151,8 +151,7 @@ def test_nircam_dhs_sw_det1(run_sw_det1pipeline, rtdata_module, fitsdiff_default
     rtdata.output = output
     rtdata.get_truth(f"truth/test_nircam_dhs/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -177,8 +176,7 @@ def test_nircam_dhs_lw_det1(run_lw_det1pipeline, rtdata_module, fitsdiff_default
     rtdata.output = output
     rtdata.get_truth(f"truth/test_nircam_dhs/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -199,8 +197,7 @@ def test_nircam_dhs_sw_spec2(run_sw_spec2pipeline, rtdata_module, fitsdiff_defau
     rtdata.output = output
     rtdata.get_truth(f"truth/test_nircam_dhs/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -222,8 +219,7 @@ def test_nircam_dhs_sw_stripe1_spec2(
     rtdata.output = output
     rtdata.get_truth(f"truth/test_nircam_dhs/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -244,5 +240,4 @@ def test_nircam_dhs_lw_spec2(run_lw_spec2pipeline, rtdata_module, fitsdiff_defau
     rtdata.output = output
     rtdata.get_truth(f"truth/test_nircam_dhs/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

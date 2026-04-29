@@ -1,7 +1,7 @@
 import pytest
 
 from jwst.lib.set_telescope_pointing import add_wcs
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -47,8 +47,7 @@ def test_nircam_tsimg_stage2(run_pipelines, fitsdiff_default_kwargs, suffix):
 
     rtdata.get_truth("truth/test_nircam_tsimg_stage23/" + output)
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_nircam_tsimage_stage3_phot(run_pipelines, diff_astropy_tables):
@@ -80,5 +79,4 @@ def test_nircam_setpointing_tsimg(rtdata, fitsdiff_default_kwargs):
     )
 
     fitsdiff_default_kwargs["rtol"] = 1e-6
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

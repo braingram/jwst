@@ -3,7 +3,7 @@ import pytest
 import stdatamodels.jwst.datamodels as dm
 
 from jwst.flatfield import FlatFieldStep
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -18,8 +18,7 @@ def test_nirspec_image2(rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_nirspec_image2/{basename}_cal.fits")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -35,8 +34,7 @@ def test_flat_field_step_user_supplied_flat(rtdata, fitsdiff_default_kwargs):
     data_flat_fielded.save(rtdata.output)
 
     rtdata.get_truth(f"truth/test_nirspec_image2/{output_file}")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata

@@ -4,7 +4,7 @@ import stdatamodels.jwst.datamodels as dm
 
 from jwst.master_background import MasterBackgroundMosStep, MasterBackgroundStep
 from jwst.regtest import regtestdata as rt
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 
 pytestmark = pytest.mark.bigdata
 
@@ -117,8 +117,7 @@ def test_nirspec_mos_mbkg_user(suffix, run_spec2_mbkg_user, fitsdiff_default_kwa
     if suffix == "s2d":
         fitsdiff_default_kwargs["rtol"] = 1e-2
         fitsdiff_default_kwargs["atol"] = 2e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_nirspec_fs_mbkg_user(rtdata, fitsdiff_default_kwargs):
@@ -142,8 +141,7 @@ def test_nirspec_fs_mbkg_user(rtdata, fitsdiff_default_kwargs):
     rtdata.get_truth(f"truth/test_nirspec_fs_mbkg_user/{output}")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_nirspec_ifu_mbkg_user(rtdata, fitsdiff_default_kwargs):
@@ -166,8 +164,7 @@ def test_nirspec_ifu_mbkg_user(rtdata, fitsdiff_default_kwargs):
     rtdata.get_truth(f"truth/test_nirspec_ifu_mbkg_user/{output}")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -192,5 +189,4 @@ def test_nirspec_ifu_mbkg_nod(rtdata, fitsdiff_default_kwargs, output_file):
     rtdata.get_truth(f"truth/test_nirspec_ifu_mbkg_nod/{output_file}")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

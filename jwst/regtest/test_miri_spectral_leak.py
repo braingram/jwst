@@ -2,7 +2,7 @@
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -35,8 +35,7 @@ def test_miri_spectral_leak(output, rtdata, fitsdiff_default_kwargs):
     # Get the truth files
     rtdata.get_truth(f"truth/test_miri_spectral_leak/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -68,5 +67,4 @@ def test_miri_spectral_leak_rf(output, rtdata, fitsdiff_default_kwargs):
     # Get the truth files
     rtdata.get_truth(f"truth/test_miri_spectral_leak/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

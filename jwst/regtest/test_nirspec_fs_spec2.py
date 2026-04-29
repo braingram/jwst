@@ -6,7 +6,7 @@ import stdatamodels.jwst.datamodels as dm
 
 from jwst.lib.suffix import replace_suffix
 from jwst.pathloss import PathLossStep
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 file_roots = [
@@ -152,8 +152,7 @@ def test_nirspec_fs_spec2(run_pipeline, fitsdiff_default_kwargs, suffix):
     rtdata.get_truth(os.path.join("truth/test_nirspec_fs_spec2", output))
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize("suffix", ["clean_flicker_noise", "cal", "s2d", "x1d"])
@@ -170,8 +169,7 @@ def test_nirspec_fs_nsclean(run_pipeline_nsclean, fitsdiff_default_kwargs, suffi
     rtdata.get_truth(os.path.join("truth/test_nirspec_fs_spec2", output))
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -197,8 +195,7 @@ def test_nirspec_fs_spec2_pixel_replace(
     rtdata.get_truth(os.path.join("truth/test_nirspec_fs_spec2_pixel_replace", output))
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_pathloss_corrpars(rtdata):

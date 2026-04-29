@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 from jwst.tests.helpers import _help_pytest_warns
 
@@ -129,8 +129,7 @@ def test_spec3_ifulong(run_spec3_ifulong, fitsdiff_default_kwargs, output):
 
     rtdata.get_truth(os.path.join(TRUTH_PATH, output))
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -154,8 +153,7 @@ def test_spec3_ifushort(run_spec3_ifushort, fitsdiff_default_kwargs, output):
 
     rtdata.get_truth(os.path.join(TRUTH_PATH, output))
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -179,8 +177,7 @@ def test_spec3_ifushort_emsm(run_spec3_ifushort_emsm, fitsdiff_default_kwargs, o
 
     rtdata.get_truth(os.path.join(TRUTH_PATH, output))
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -201,5 +198,4 @@ def test_spec3_ifushort_extract1d(run_spec3_ifushort_extract1d, fitsdiff_default
 
     rtdata.get_truth(os.path.join(TRUTH_PATH, output))
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

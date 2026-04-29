@@ -5,7 +5,7 @@ from stcal.alignment import util
 from stdatamodels.jwst import datamodels
 
 from jwst.extract_1d import Extract1dStep
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -72,8 +72,7 @@ def test_miri_lrs_slit_spec2(run_pipeline, fitsdiff_default_kwargs, suffix, rtda
     rtdata.get_truth(f"truth/test_miri_lrs_slit_spec2/{output}")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_miri_lrs_extract1d_from_cal(run_pipeline, rtdata_module, fitsdiff_default_kwargs):
@@ -83,8 +82,7 @@ def test_miri_lrs_extract1d_from_cal(run_pipeline, rtdata_module, fitsdiff_defau
     output = "jw01530005001_03103_00001_mirimage_extract1dstep.fits"
     rtdata.output = output
     rtdata.get_truth(f"truth/test_miri_lrs_slit_spec2/{output}")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_miri_lrs_slit_wcs(run_pipeline, rtdata_module, fitsdiff_default_kwargs):

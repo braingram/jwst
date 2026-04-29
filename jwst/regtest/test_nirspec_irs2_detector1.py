@@ -4,7 +4,7 @@ intermediate products."""
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -95,8 +95,7 @@ def test_nirspec_irs2_detector1(
     # Set tolerances so comparisons work across architectures
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -124,5 +123,4 @@ def test_nirspec_irs2_detector1_with_clean_flicker_noise(
     # Set tolerances so comparisons work across architectures
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

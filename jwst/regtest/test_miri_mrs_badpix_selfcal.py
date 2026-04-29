@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 OUTSTEM_BKG = "result_bkgasn"
@@ -60,8 +60,7 @@ def test_miri_mrs_badpix_selfcal(run_pipeline_selfcal, fitsdiff_default_kwargs):
     rtdata.get_truth(f"truth/test_miri_mrs_badpix_selfcal/{OUTSTEM_SELFCAL}_badpix_selfcal.fits")
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
     # check the bkg files in the background case, but not in the selfcal case
     for idx in range(4):
@@ -89,5 +88,4 @@ def test_miri_mrs_badpix_selfcal_bkg(basename, run_pipeline_background, fitsdiff
     rtdata.get_truth(f"truth/test_miri_mrs_badpix_selfcal/{basename}")
 
     # Compare the results and check the bkg files in the background case, but not in the selfcal case
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -47,8 +47,7 @@ def test_niriss_soss_tso_stage2(rtdata_module, run_tso_spec2, fitsdiff_default_k
 
     rtdata.get_truth(f"truth/test_niriss_soss_full/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_niriss_soss_tso_stage3(rtdata_module, run_tso_tso3, fitsdiff_default_kwargs):
@@ -61,5 +60,4 @@ def test_niriss_soss_tso_stage3(rtdata_module, run_tso_tso3, fitsdiff_default_kw
 
     rtdata.get_truth(f"truth/test_niriss_soss_full/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

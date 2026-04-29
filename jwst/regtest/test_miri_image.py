@@ -5,7 +5,7 @@ from gwcs.wcstools import grid_from_bounding_box
 from numpy.testing import assert_allclose
 from stdatamodels.jwst import datamodels
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -236,8 +236,7 @@ def test_miri_image_detector1_with_avg_dark_current(
     # architectures
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -266,8 +265,7 @@ def test_miri_image_detector1_with_clean_flicker_noise(
     # Set tolerances so the file comparisons work across architectures
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize("suffix", ["assign_wcs", "flat_field", "cal", "i2d"])
@@ -295,8 +293,7 @@ def _assert_is_same(rtdata_module, fitsdiff_default_kwargs, suffix):
     # architectures
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_miri_image3_i2d(run_image3, rtdata_module, fitsdiff_default_kwargs):
@@ -306,8 +303,7 @@ def test_miri_image3_i2d(run_image3, rtdata_module, fitsdiff_default_kwargs):
     rtdata.get_truth("truth/test_miri_image_stages/jw01024-o001_t002_miri_f770w_i2d.fits")
 
     fitsdiff_default_kwargs["rtol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_miri_image3_catalog(run_image3, rtdata_module, diff_astropy_tables):

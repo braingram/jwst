@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -44,5 +44,4 @@ def test_niriss_soss_superstripe_spec2(rtdata_module, run_spec2, fitsdiff_defaul
 
     # Ignore the custom specprofile reference file because it contains a full path.
     fitsdiff_default_kwargs["ignore_keywords"].append("R_SPPROF")
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

@@ -3,7 +3,7 @@ import os
 import pytest
 
 from jwst.master_background import MasterBackgroundStep
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 
 
 @pytest.fixture(scope="module")
@@ -46,5 +46,4 @@ def test_miri_lrs_masterbg_user(run_pipeline, fitsdiff_default_kwargs, output):
     rtdata.get_truth(os.path.join("truth/test_miri_lrs_masterbg_user", output))
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

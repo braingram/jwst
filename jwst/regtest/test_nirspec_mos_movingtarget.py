@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -78,8 +78,7 @@ def test_nirspec_mos_mt_spec2(run_spec2_pipeline, fitsdiff_default_kwargs, suffi
     rtdata.get_truth("truth/test_nirspec_mos_movingtarget/" + output)
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -97,5 +96,4 @@ def test_nirspec_mos_mt_spec3(run_spec3_pipeline, fitsdiff_default_kwargs, suffi
     rtdata.get_truth("truth/test_nirspec_mos_movingtarget/" + output)
 
     # Compare the results
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

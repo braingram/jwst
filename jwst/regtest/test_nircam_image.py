@@ -5,7 +5,7 @@ from gwcs.wcstools import grid_from_bounding_box
 from numpy.testing import assert_allclose
 from stdatamodels.jwst import datamodels
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -169,8 +169,7 @@ def test_nircam_image_sirs(run_detector1pipeline_with_sirs, rtdata_module, fitsd
     fitsdiff_default_kwargs["rtol"] = 5e-5
     fitsdiff_default_kwargs["atol"] = 1e-4
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize(
@@ -202,8 +201,7 @@ def test_nircam_image_stages12(run_image2pipeline, rtdata_module, fitsdiff_defau
         fitsdiff_default_kwargs["rtol"] = 5e-5
         fitsdiff_default_kwargs["atol"] = 1e-4
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_nircam_image_stage2_wcs(run_image2pipeline, rtdata_module):
@@ -252,8 +250,7 @@ def test_nircam_image_stage3(run_image3pipeline, rtdata_module, fitsdiff_default
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 2e-4
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_nircam_image_stage3_catalog(run_image3pipeline, rtdata_module, diff_astropy_tables):
@@ -274,8 +271,7 @@ def test_nircam_image_stage3_segm(run_image3pipeline, rtdata_module, fitsdiff_de
     rtdata.output = output
     rtdata.get_truth(f"truth/test_nircam_image_stages/{output}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_nircam_frame_averaged_darks(rtdata, fitsdiff_default_kwargs):
@@ -293,8 +289,7 @@ def test_nircam_frame_averaged_darks(rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_nircam_image/{dark_file}")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def test_imaging_distortion(rtdata, fitsdiff_default_kwargs):
@@ -344,8 +339,7 @@ def test_nircam_image_detector1_with_clean_flicker_noise(
     # Set tolerances so the file comparisons work across architectures
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize("suffix", ["likely_rate", "likely_rateints"])
@@ -363,5 +357,4 @@ def test_nircam_image_detector1_with_likelihood(
     # Set tolerances so the file comparisons work across architectures
     fitsdiff_default_kwargs["rtol"] = 1e-4
     fitsdiff_default_kwargs["atol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

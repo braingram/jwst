@@ -7,7 +7,7 @@ import stdatamodels.jwst.datamodels as dm
 from jwst.flatfield import FlatFieldStep
 from jwst.flatfield.flat_field import nirspec_ifu
 from jwst.pathloss import PathLossStep
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 
 # Define artifactory source and truth
 INPUT_PATH = "nirspec/ifu"
@@ -30,8 +30,7 @@ def test_nirspec_ifu_user_supplied_flat(rtdata, fitsdiff_default_kwargs):
     data.save(rtdata.output)
 
     rtdata.get_truth(TRUTH_PATH + "/" + output_file)
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -53,8 +52,7 @@ def test_flat_field_step_user_supplied_flat(rtdata, fitsdiff_default_kwargs):
     del data_flat_fielded
 
     rtdata.get_truth(TRUTH_PATH + "/" + output_file)
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.slow

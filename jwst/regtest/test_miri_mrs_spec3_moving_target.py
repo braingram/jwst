@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Define artifactory source and truth
@@ -51,5 +51,4 @@ def test_spec3_moving_target(run_spec3_moving_target, fitsdiff_default_kwargs, o
 
     rtdata.get_truth(os.path.join(TRUTH_PATH, output))
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

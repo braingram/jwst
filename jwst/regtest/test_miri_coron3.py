@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 # Mark all tests in this module
@@ -39,8 +39,7 @@ def test_miri_coron3_sci_exp(run_pipeline, suffix, exposure, fitsdiff_default_kw
     rtdata.get_truth("truth/test_miri_coron3/" + output)
 
     fitsdiff_default_kwargs["atol"] = 1e-2
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.parametrize("suffix", ["psfstack", "i2d"])
@@ -54,5 +53,4 @@ def test_miri_coron3_product(run_pipeline, suffix, fitsdiff_default_kwargs):
 
     fitsdiff_default_kwargs["atol"] = 1e-4
     fitsdiff_default_kwargs["rtol"] = 1e-4
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

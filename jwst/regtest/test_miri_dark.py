@@ -1,6 +1,6 @@
 import pytest
 
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 from jwst.stpipe import Step
 
 
@@ -23,8 +23,7 @@ def test_miri_dark_pipeline(exposure, rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_miri_dark_pipeline/{exposure}_dark.fits")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 @pytest.mark.bigdata
@@ -39,5 +38,4 @@ def test_miri_segmented_dark(exposure, rtdata, fitsdiff_default_kwargs):
 
     rtdata.get_truth(f"truth/test_miri_segmented_dark/{exposure}_darkcurrentstep.fits")
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

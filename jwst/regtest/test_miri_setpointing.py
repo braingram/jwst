@@ -1,7 +1,7 @@
 import pytest
 
 from jwst.lib.set_telescope_pointing import add_wcs
-from jwst.regtest.st_fitsdiff import STFITSDiff as FITSDiff
+from jwst.regtest.regtestdata import assert_identical
 
 
 @pytest.mark.bigdata
@@ -22,5 +22,4 @@ def test_miri_setpointing(rtdata, fitsdiff_default_kwargs):
     # Compare the results
     rtdata.get_truth("truth/test_miri_setpointing/jw01282004001_02101_00001_mirifulong_uncal.fits")
     fitsdiff_default_kwargs["rtol"] = 1e-6
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)

@@ -384,6 +384,14 @@ def run_step_from_dict(rtdata, **step_params):
     return rtdata
 
 
+def assert_identical(output, truth, **fitsdiff_kwargs):  # noqa: D103
+    diff = FITSDiff(output, truth, **fitsdiff_kwargs)
+    identical = diff.identical
+    report = diff.report()
+    del diff
+    assert identical, report
+
+
 def is_like_truth(rtdata, fitsdiff_default_kwargs, output, truth_path, is_suffix=True):
     """
     Compare step outputs with truth.
@@ -421,8 +429,7 @@ def is_like_truth(rtdata, fitsdiff_default_kwargs, output, truth_path, is_suffix
 
     rtdata.get_truth(os.path.join(truth_path, output))
 
-    diff = FITSDiff(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
-    assert diff.identical, diff.report()
+    assert_identical(rtdata.output, rtdata.truth, **fitsdiff_default_kwargs)
 
 
 def text_diff(from_path, to_path):
