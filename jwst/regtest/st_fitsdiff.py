@@ -184,6 +184,10 @@ class STFITSDiff(FITSDiff):
             ignore_blank_cards=ignore_blank_cards,
         )
 
+    @property
+    def identical(self):
+        return False
+
     def _diff(self):
         # The following lines are identical to the original FITSDiff code
 
