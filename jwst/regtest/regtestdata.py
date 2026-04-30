@@ -389,7 +389,7 @@ def assert_identical(output, truth, **fitsdiff_kwargs):  # noqa: D103
     identical = diff.identical
     report = diff.report()
     del diff
-    assert identical, report
+    assert False, report
 
 
 def is_like_truth(rtdata, fitsdiff_default_kwargs, output, truth_path, is_suffix=True):
