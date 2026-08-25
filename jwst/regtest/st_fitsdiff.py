@@ -190,6 +190,11 @@ class STFITSDiff(FITSDiff):
         if len(self.a) != len(self.b):
             self.diff_hdu_count = (len(self.a), len(self.b))
 
+        akeys = [(h.name, h.ver) for h in self.a]
+        bkeys = [(h.name, h.ver) for h in self.b]
+        if akeys != bkeys:
+            self.diff_keys = (akeys, bkeys)
+
         # Record filenames for use later in _report
         self.filenamea = self.a.filename()
         if not self.filenamea:
@@ -322,6 +327,12 @@ class STFITSDiff(FITSDiff):
 
         if not self.expected_extension_tolerances:
             self._writeln(f"\n Relative tolerance: {self.rtol}, Absolute tolerance: {self.atol}")
+
+        if hasattr(self, "diff_keys"):
+            self._fileobj.write("\n")
+            self._writeln("Files contain different HDUs:")
+            self._writeln(f" a: {self.diff_keys[0]}")
+            self._writeln(f" b: {self.diff_keys[1]}")
 
         if self.diff_hdu_count:
             self._fileobj.write("\n")
