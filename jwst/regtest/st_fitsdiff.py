@@ -31,6 +31,164 @@ __all__ = [
 ]
 
 
+extnames = {
+    "uncal": ["SCI", "GROUP", "INT_TIMES", "ZEROFRAME", "REFOUT", "ASDF"],
+    "ramp": ["SCI", "PIXELDQ", "GROUPDQ", "ZEROFRAME", "GROUP", "INT_TIMES", "REFOUT", "ASDF"],
+    "rate": ["SCI", "ERR", "DQ", "VAR_POISSON", "VAR_RNOISE", "ASDF"],
+    "rateints": ["SCI", "ERR", "DQ", "INT_TIMES", "VAR_POISSON", "VAR_RNOISE", "ASDF"],
+    "bsub": ["SCI", "ERR", "DQ"],
+    "bsubints": ["SCI", "ERR", "DQ"],
+    "cal": [
+        "SCI",
+        "ERR",
+        "DQ",
+        "VAR_POISSON",
+        "VAR_RNOISE",
+        "VAR_FLAT",
+        "AREA",
+        "WAVELENGTH",
+        "PATHLOSS_PS",
+        "PATHLOSS_UN",
+        "BARSHADOW",
+        "ASDF",
+    ],
+    "calints": [
+        "SCI",
+        "ERR",
+        "DQ",
+        "INT_TIMES",
+        "VAR_POISSON",
+        "VAR_RNOISE",
+        "VAR_FLAT",
+        "AREA",
+        "WAVELENGTH",
+        "ASDF",
+    ],
+    "crf": [
+        "SCI",
+        "ERR",
+        "DQ",
+        "VAR_POISSON",
+        "VAR_RNOISE",
+        "VAR_FLAT",
+        "AREA",
+        "WAVELENGTH",
+        "PATHLOSS_PS",
+        "PATHLOSS_UN",
+        "BARSHADOW",
+        "ASDF",
+    ],
+    "crfints": [
+        "SCI",
+        "ERR",
+        "DQ",
+        "INT_TIMES",
+        "VAR_POISSON",
+        "VAR_RNOISE",
+        "VAR_FLAT",
+        "AREA",
+        "WAVELENGTH",
+        "ASDF",
+    ],
+    "i2d": [
+        "SCI",
+        "ERR",
+        "CON",
+        "WHT",
+        "VAR_POISSON",
+        "VAR_RNOISE",
+        "VAR_FLAT",
+        "WCS-TABLE",
+        "HDRTAB",
+        "ASDF",
+    ],
+    "s2d": [
+        "SCI",
+        "ERR",
+        "CON",
+        "WHT",
+        "VAR_POISSON",
+        "VAR_RNOISE",
+        "VAR_FLAT",
+        "WCS-TABLE",
+        "HDRTAB",
+        "ASDF",
+    ],
+    "x1d": ["EXTRACT1D", "ASDF", "HDRTAB"],
+    "x1dints": ["EXTRACT1D", "ASDF", "HDRTAB"],
+    "s3d": ["SCI", "ERR", "DQ", "WMAP", "WCS-TABLE", "HDRTAB", "ASDF"],
+    "c1d": ["COMBINE1D", "ASDF"],
+    "psfstack": ["SCI", "DQ", "ERR", "ASDF"],
+    "psfalign": ["SCI", "DQ", "ERR", "ASDF"],
+    "psfsub": ["SCI", "ERR", "DQ", "INT_TIMES", "VAR_POISSON", "VAR_RNOISE", "ASDF"],
+    "ami-oi": [
+        "OI_ARRAY",
+        "OI_TARGET",
+        "OI_T3",
+        "OI_VIS",
+        "OI_VIS2",
+        "OI_Q4",
+        "OI_WAVELENGTH",
+        "ASDF",
+    ],
+    "amimulti-oi": [
+        "OI_ARRAY",
+        "OI_TARGET",
+        "OI_T3",
+        "OI_VIS",
+        "OI_VIS2",
+        "OI_Q4",
+        "OI_WAVELENGTH",
+        "ASDF",
+    ],
+    "amilg": [
+        "OI_ARRAY",
+        "OI_TARGET",
+        "OI_T3",
+        "OI_VIS",
+        "OI_VIS2",
+        "OI_Q4",
+        "OI_WAVELENGTH",
+        "ASDF",
+    ],
+    "aminorm-oi": [
+        "OI_ARRAY",
+        "OI_TARGET",
+        "OI_T3",
+        "OI_VIS",
+        "OI_VIS2",
+        "OI_Q4",
+        "OI_WAVELENGTH",
+        "ASDF",
+    ],
+}
+
+
+def check_order(hdulist):
+    fn = hdulist.filename()
+    if not fn:
+        return True, []
+    if "." not in fn:
+        return True, []
+    base = fn.rsplit(".", maxsplit=1)[0]
+    if "_" not in base:
+        return True, []
+    suffix = base.split("_")[-1].lower()
+    if suffix not in extnames:
+        return True, []
+    expected = extnames[suffix]
+    min_index = 0
+    # skip primary
+    for hdu in hdulist[1:]:
+        name = hdu.name.upper()
+        if name in expected:
+            expected_index = expected.index(name)
+            if expected_index < min_index:
+                return False, [expected]
+            min_index = expected_index
+    return True, []
+
+
 def set_variable_to_empty_list(variable):
     if variable is None:
         variable = []
@@ -195,6 +353,16 @@ class STFITSDiff(FITSDiff):
         if akeys != bkeys:
             self.diff_keys = (akeys, bkeys)
 
+        # check expected order of hdulist
+        ra, ea = check_order(self.a)
+        rb, eb = check_order(self.b)
+        if not ra or not rb:
+            self.diff_order = {}
+        if not ra:
+            self.diff_order["a"] = (ea, akeys)
+        if not rb:
+            self.diff_order["a"] = (eb, bkeys)
+
         # Record filenames for use later in _report
         self.filenamea = self.a.filename()
         if not self.filenamea:
@@ -333,6 +501,16 @@ class STFITSDiff(FITSDiff):
             self._writeln("Files contain different HDUs:")
             self._writeln(f" a: {self.diff_keys[0]}")
             self._writeln(f" b: {self.diff_keys[1]}")
+
+        if hasattr(self, "diff_order"):
+            self._fileobj.write("\n")
+            for k in ("a", "b"):
+                if k not in self.diff_order:
+                    continue
+                e, a = self.diff_order[k]
+                self._writeln(f"{k}: hdus are not in expected order")
+                self._writeln(f" actual: {a}")
+                self._writeln(f" expected: {e}")
 
         if self.diff_hdu_count:
             self._fileobj.write("\n")
