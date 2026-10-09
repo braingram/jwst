@@ -7,6 +7,7 @@ on:
       - synchronize
 
 permissions:
+  contents: read
   issues: write
   pull-requests: write
 
@@ -14,6 +15,10 @@ jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7 # Uploads repository content to the runner
+        with:
+          repository: "braingram/jwst"
+          sparse-checkout:  ".github/labeler.yml"
       - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13  # v7.0.0
         if: github.event_name == 'pull_request_target' || github.event_name == 'pull_request'
         with:
