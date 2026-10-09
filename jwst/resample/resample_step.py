@@ -1,4 +1,8 @@
-"""Apply resampling to JWST data."""
+"""
+Apply resampling to JWST data.
+
+Test labeler.
+"""
 
 import logging
 
