@@ -1,10 +1,10 @@
 outlier_detection:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "**/outlier_detection/**/*"
+- changed-files:
+    - any-glob-to-any-file:
+        - "**/outlier_detection/**/*"
 
 resample:
-  - changed-files:
-      - all-globs-to-any-file:
-          - "**/resample/**/*"
-          - "!**/resample/resample_spec*.py"
+- changed-files:
+    - all-globs-to-any-file:
+        - "**/resample/**/*"
+        - "!**/resample/resample_spec*.py"
